@@ -1,0 +1,50 @@
+.active {
+  color: #1261a0;
+}
+.active svg {
+  display: block;
+}
+.svg-active {
+  display: none;
+}
+.side-bar {
+  background: rgba(255, 255, 255, 0.33);
+  backdrop-filter: blur(4px);
+}
+
+.slide-bottom-enter-active,
+.slide-bottom-leave-active {
+  transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
+}
+.slide-bottom-enter,
+.slide-bottom-leave-to {
+  opacity: 0;
+  transform: translate3d(0, 15px, 0);
+}
+
+.hamburger .line {
+  background-color: #0a1e36;
+  height: 0.125rem;
+  width: 1.25rem;
+  display: block;
+  margin: 3px auto;
+  -webkit-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+.hamburger:hover {
+  cursor: pointer;
+}
+
+#hamburger-1.is-active .line:nth-child(2) {
+  opacity: 0;
+}
+
+#hamburger-1.is-active .line:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+
+#hamburger-1.is-active .line:nth-child(3) {
+  transform: translateY(-4.5px) rotate(-45deg);
+}
