@@ -33,6 +33,7 @@ const App = () => {
     >
       <Router>
         <Switch>
+          <AuthRoute path="/app/classroom/:id" component={Classroom} exact />
           <AppLayout>
             <Switch>
               <Route exact path="/login" component={Login} />
@@ -45,7 +46,6 @@ const App = () => {
               ))}
             </Switch>
           </AppLayout>
-          <AuthRoute path="/app/classroom/:id" component={Classroom} exact />
         </Switch>
       </Router>
     </AppContext.Provider>

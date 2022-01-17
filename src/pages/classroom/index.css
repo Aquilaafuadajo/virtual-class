@@ -1,0 +1,37 @@
+.active {
+  background: #EB5757;
+}
+
+.icon-active path {
+  fill: #2F80ED;
+}
+
+.drawer-mic path {
+  fill: #333333;
+}
+
+/* Customize website's scrollbar like Mac OS
+	Not supports in Firefox and IE */
+
+  /* total width */
+	.drawer-scroll-area::-webkit-scrollbar {
+		background-color: #fff;
+		width: 16px;
+	}
+
+	/* background of the scrollbar except button or resizer */
+	.drawer-scroll-area::-webkit-scrollbar-track {
+		background-color: #fff;
+	}
+
+	/* scrollbar itself */
+	.drawer-scroll-area::-webkit-scrollbar-thumb {
+		background-color: #babac0;
+		border-radius: 16px;
+		border: 4px solid #fff;
+	}
+
+	/* set button(top and bottom of the scrollbar) */
+	.drawer-scroll-area::-webkit-scrollbar-button {
+		display:none;
+	}
