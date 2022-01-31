@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useHistory } from "react-router-dom";
 
 // components
 import OnboardingLayout from "../../../containers/onboardingLayout";
@@ -7,26 +8,56 @@ import CustomButton from "../../../components/customButton";
 import CustomInput from "../../../components/customInput";
 import CustomDropdown from "../../../components/customDropdown";
 
+// contexts
+import AppContext from "../../../contexts/AppContext";
+
 // hooks
 import useQuery from "../../../hooks/useQuery";
 
 // utils
 import { emailRule, inputRuleNoPattern } from "../../../utils/validation";
+import { verifyToken } from "../../../utils/jwt";
+
+// firebase
+import {
+  signup,
+  teacherSignUp,
+  confirmTeacherSignUp,
+  getUserToken,
+} from "../../../firebase/firebase";
 
 // check route if there's a token
 // if token present form, if not present request token form
 
 function TeacherSignup() {
   const query = useQuery();
-  const token = query.get("token");
+  const [token, setToken] = useState(query.get("token"));
+  const { setUser } = useContext(AppContext);
 
   const RequestToken = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [requestStatus, setRequestStatus] = useState(false);
+    const [error, setError] = useState("");
     const { handleSubmit, control, errors } = useForm({
       defaultValues: {
+        fullname: "",
         email: "",
       },
     });
-    const onSubmit = (data) => console.log({ data });
+    const onSubmit = async (data) => {
+      setIsLoading(true);
+      await signup(
+        { ...data, status: "pending" },
+        () => {
+          setRequestStatus(true);
+          setIsLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setIsLoading(false);
+        }
+      );
+    };
 
     return (
       <OnboardingLayout>
@@ -38,6 +69,14 @@ function TeacherSignup() {
           Upgrade to unlock unlimited feedback submissions if you are happy.
         </p>
         <CustomInput
+          name="fullname"
+          placeholder="Enter Your Full Name"
+          type="text"
+          rules={inputRuleNoPattern("fullname")}
+          control={control}
+          errors={errors}
+        />
+        <CustomInput
           name="email"
           placeholder="Enter Your Email e.g name@lasu.edu.ng"
           type="text"
@@ -45,44 +84,111 @@ function TeacherSignup() {
           control={control}
           errors={errors}
         />
-        <CustomButton text="Request token" onClick={handleSubmit(onSubmit)} />
-        <p className="text-[#27AE60] font-normal text-sm lg:text-lg text-center mb-3">
-          Request sent. Please wait while an admin approves your request.
-        </p>
+        <CustomButton
+          text="Request token"
+          onClick={handleSubmit(onSubmit)}
+          isLoading={isLoading}
+          disabled={requestStatus}
+        />
+        {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+        {requestStatus && (
+          <p className="text-[#27AE60] font-normal text-sm lg:text-lg text-center mb-3">
+            Request sent. Please wait while your request is being reviewed by an
+            admin. A mail with with a token url will be sent to your mail once
+            approved.
+          </p>
+        )}
       </OnboardingLayout>
     );
   };
 
   const SignupForm = () => {
-    // decode token here
-    // if token expired or invalid, open toast and prompt to request token again
+    const history = useHistory();
+    const [newUser, setNewUser] = useState(
+      verifyToken(token.split(" ").join("+"), (error) => {
+        alert(error);
+        window.location.replace(
+          `${window.location.protocol}//${window.location.host}/sign-up/teacher`
+        );
+      })
+    );
+
+    // check token validity
+    useEffect(() => {
+      const makeRequest = async () => {
+        await getUserToken(
+          newUser,
+          ({ expiresAt, token } = {}) => {
+            if (token?.split(" ").join("+") !== token) {
+              alert("Invalid token!");
+              window.location.replace(
+                `${window.location.protocol}//${window.location.host}/sign-up/teacher`
+              );
+            }
+            if (expiresAt < Date.now()) {
+              alert("Token expired!");
+              window.location.replace(
+                `${window.location.protocol}//${window.location.host}/sign-up/teacher`
+              );
+            }
+          },
+          (error) => {
+            alert(error);
+          }
+        );
+      };
+      makeRequest();
+    }, []);
+
     const { handleSubmit, control, errors } = useForm({
       defaultValues: {
-        fullname: "",
+        fullname: newUser?.fullname,
         department: "",
-        email: "decoded@lasu.edu.ng",
+        email: newUser?.email,
         code: "",
       },
     });
     const [verificationCode, setVerificationCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const onConfirm = (data) => {
-      // generate code
-      const code = "SVNEOK";
-      setVerificationCode(code);
-      // search email in DB and update generated code if email not found, openToast(Email not recognized!) return
-      // if email found send code to email and save in state. setVerificationCode(code)
-      //
-      console.log({ data });
+    const [error, setError] = useState("");
+
+    const onConfirm = async (data) => {
+      setError("");
+      setIsLoading(true);
+      await teacherSignUp(
+        data,
+        ({ code }) => {
+          console.log("verification code:", code);
+          setVerificationCode(code);
+          setIsLoading(false);
+        },
+        (error) => {
+          setError(error);
+          setIsLoading(false);
+        }
+      );
     };
+
     const onFinish = (data) => {
-      // compare code locally
-      // save data in DB
+      setError("");
+      setIsLoading(true);
       if (data.code === verificationCode) {
-        console.log({ data });
-        // update app context.
+        confirmTeacherSignUp(
+          data,
+          (user) => {
+            localStorage.setItem("user", JSON.stringify(user));
+            setUser(user);
+            setIsLoading(false);
+            history.push(`/app/${user.userId}`);
+          },
+          (error) => {
+            setError(error);
+            setIsLoading(false);
+          }
+        );
       } else {
-        // open toast
+        setError("Invalid code!");
+        setIsLoading(false);
       }
     };
 
@@ -104,6 +210,7 @@ function TeacherSignup() {
           rules={inputRuleNoPattern("fullname")}
           control={control}
           errors={errors}
+          disabled
         />
         <CustomDropdown
           name="department"
@@ -119,6 +226,7 @@ function TeacherSignup() {
           rules={emailRule}
           control={control}
           errors={errors}
+          disabled
         />
         {!verificationCode && (
           <CustomButton
@@ -143,6 +251,11 @@ function TeacherSignup() {
               isLoading={isLoading}
             />
           </div>
+        )}
+        {error && (
+          <p className="text-red-500 font-normal text-sm lg:text-lg text-center mb-3">
+            {error}
+          </p>
         )}
       </OnboardingLayout>
     );

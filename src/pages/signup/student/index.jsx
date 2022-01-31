@@ -1,5 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
+import { useHistory } from "react-router-dom";
+
+// context
+import AppContext from "../../../contexts/AppContext";
 
 // components
 import OnboardingLayout from "../../../containers/onboardingLayout";
@@ -9,8 +13,10 @@ import CustomDropdown from "../../../components/customDropdown";
 
 // utils
 import { emailRule, inputRuleNoPattern } from "../../../utils/validation";
+// firebase
+import { signup } from "../../../firebase/firebase";
 
-function TeacherSignup() {
+function StudentSignUp() {
   const { handleSubmit, control, errors } = useForm({
     defaultValues: {
       fullname: "",
@@ -20,9 +26,28 @@ function TeacherSignup() {
     },
   });
   const [isLoading, setIsLoading] = useState(false);
-  const onConfirm = (data) => {
-    // save data
-    console.log({ data });
+  const [error, setError] = useState("");
+  const { setUser } = useContext(AppContext);
+  const history = useHistory();
+  const onSubmit = async (data) => {
+    setError("");
+    setIsLoading(true);
+    await signup(
+      { ...data, role: "student" },
+      (userId) => {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ ...data, userId, role: "student" })
+        );
+        setUser({ ...data, userId, role: "student" });
+        setIsLoading(false);
+        history.push(`/app/${userId}`);
+      },
+      (error) => {
+        setError(error);
+        setIsLoading(false);
+      }
+    );
   };
 
   const departmentOptions = [
@@ -77,11 +102,12 @@ function TeacherSignup() {
       />
       <CustomButton
         text="Confirm"
-        onClick={handleSubmit(onConfirm)}
+        onClick={handleSubmit(onSubmit)}
         isLoading={isLoading}
       />
+      {error && <p className="text-xs text-red-500 text-center">{error}</p>}
     </OnboardingLayout>
   );
 }
 
-export default TeacherSignup;
+export default StudentSignUp;

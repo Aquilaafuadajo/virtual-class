@@ -1,4 +1,4 @@
-.overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   right: 0;
@@ -8,5 +8,4 @@
   justify-content: center;
   align-items: center;
   background: rgba(40, 40, 40, 0.25);
-  z-index: 99;
 }

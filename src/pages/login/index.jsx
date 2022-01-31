@@ -1,15 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
+import { useHistory } from "react-router-dom";
 
 // components
 import OnboardingLayout from "../../containers/onboardingLayout";
 import CustomButton from "../../components/customButton";
 import CustomInput from "../../components/customInput";
 
+// context
+import AppContext from "../../contexts/AppContext";
+
 // utils
 import { emailRule, inputRuleNoPattern } from "../../utils/validation";
 
+// firebase
+import { login, getUser } from "../../firebase/firebase";
+
 function TeacherSignup() {
+  const [error, setError] = useState("");
   const { handleSubmit, control, errors } = useForm({
     defaultValues: {
       email: "",
@@ -18,23 +26,47 @@ function TeacherSignup() {
   });
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const onConfirm = (data) => {
-    // generate code
-    const code = "SVNEOK";
-    setVerificationCode(code);
-    // search email in DB and update generated code if email not found, openToast(Email not recognized!) return
-    // if email found setVerificationCode(code)
-    //
-    console.log({ data });
+  const { setUser, user } = useContext(AppContext);
+  const history = useHistory();
+
+  const onConfirm = async (data) => {
+    setIsLoading(true);
+    await login(
+      data,
+      ({ code }) => {
+        console.log("verification code:", code);
+        setVerificationCode(code);
+        setIsLoading(false);
+      },
+      (error) => {
+        setError(error);
+        setIsLoading(false);
+      }
+    );
   };
   const onFinish = (data) => {
-    // compare code locally
+    setIsLoading(true);
     if (data.code === verificationCode) {
-      console.log({ data });
-      // update app context.
-      // update route history
+      getUser(
+        data,
+        (user) => {
+          localStorage.setItem("user", JSON.stringify(user));
+          setUser(user);
+          setIsLoading(false);
+          if (user?.role === "admin") {
+            history.push(`/app/admin/${user?.userId}`);
+          } else {
+            history.push(`/app/${user.userId}`);
+          }
+        },
+        (error) => {
+          setError(error);
+          setIsLoading(false);
+        }
+      );
     } else {
-      // open toast
+      setError("Invalid code!");
+      setIsLoading(false);
     }
   };
 
@@ -50,6 +82,7 @@ function TeacherSignup() {
         rules={emailRule}
         control={control}
         errors={errors}
+        disabled={verificationCode}
       />
       {!verificationCode && (
         <CustomButton
@@ -73,6 +106,16 @@ function TeacherSignup() {
             onClick={handleSubmit(onFinish)}
             isLoading={isLoading}
           />
+          {error && (
+            <p className="text-red-500 font-normal text-sm lg:text-lg text-center mb-3">
+              {error}
+            </p>
+          )}
+          {verificationCode && (
+            <p className="text-[#27AE60] font-normal text-sm lg:text-lg text-center mb-3">
+              Verification code sent to email provided, please check your email.
+            </p>
+          )}
         </div>
       )}
     </OnboardingLayout>

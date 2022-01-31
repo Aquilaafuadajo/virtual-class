@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 // components
 import Filter from "./components/filter";
 import CreateLectureModal from "./components/createLectureModal";
+
+// contexts
+import AppContext from "../../contexts/AppContext";
 
 // icons
 import { ReactComponent as AddIcon } from "../../assets/icons/plus.svg";
@@ -15,6 +18,7 @@ import { levelOptions, departmentOptions } from "../../utils/constants";
 import "./index.css";
 
 function TeacherPortal() {
+  const { user } = useContext(AppContext);
   const [level, setLevel] = useState("");
   const [department, setDepartment] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,6 +29,12 @@ function TeacherPortal() {
   };
   const onChangeDepartment = (e) => {
     setDepartment(e.target.value);
+  };
+
+  const departmentFull = {
+    ECE: "Electronic and Computer Engineering",
+    CPE: "Chemical and Polymer Engineering",
+    MECH: "Mechanical Engineering",
   };
 
   return (
@@ -39,7 +49,7 @@ function TeacherPortal() {
               Full Name:
             </p>
             <p className="text-sm lg:text-lg text-[#333333] text-left">
-              Afuadajo Emmanuel
+              {user?.fullname}
             </p>
           </div>
           <div className="flex justify-start">
@@ -47,7 +57,7 @@ function TeacherPortal() {
               Email:
             </p>
             <p className="text-sm lg:text-lg text-[#333333] text-left">
-              aquilaafuadajo@las.edu.ng
+              {user?.email}
             </p>
           </div>
           <div className="flex justify-start">
@@ -55,7 +65,7 @@ function TeacherPortal() {
               Department:
             </p>
             <p className="text-sm lg:text-lg text-[#333333] text-left">
-              Electronic and Computer Engineering
+              {departmentFull[user?.department]}
             </p>
           </div>
         </div>

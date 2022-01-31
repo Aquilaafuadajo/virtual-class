@@ -14,7 +14,6 @@ import AppLayout from "./containers/appLayout";
 import AppContext from "./contexts/AppContext";
 
 // utils
-import decodedToken from "./utils/decodeToken";
 import routes from "./routes";
 import AuthRoute from "./utils/AuthRoute";
 
@@ -22,7 +21,8 @@ import AuthRoute from "./utils/AuthRoute";
 import "./App.css";
 
 const App = () => {
-  const [user, setUser] = useState(decodedToken(localStorage.getItem("token")));
+  const localUser = localStorage.getItem("user");
+  const [user, setUser] = useState(localUser ? JSON.parse(localUser) : null);
 
   return (
     <AppContext.Provider

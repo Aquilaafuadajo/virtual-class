@@ -7,7 +7,6 @@ import AppContext from "../contexts/AppContext";
 const AuthRoute = ({ component: Component, ...rest }) => {
   const history = useHistory();
   const { user } = useContext(AppContext);
-  console.log(user);
 
   if (!user) history.push("/login");
 

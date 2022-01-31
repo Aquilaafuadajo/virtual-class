@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 
 // components
 import Filter from "./components/filter";
+
+// context
+import AppContext from "../../contexts/AppContext";
 
 // utils
 import { levelOptions, departmentOptions } from "../../utils/constants";
@@ -13,6 +16,15 @@ import "./index.css";
 function StudentPortal() {
   const [level, setLevel] = useState("");
   const [department, setDepartment] = useState("");
+  const {
+    user: { fullname, email, department: dept, level: lvl },
+  } = useContext(AppContext);
+
+  const departmentFull = {
+    ECE: "Electronic and Computer Engineering",
+    CPE: "Chemical and Polymer Engineering",
+    MECH: "Mechanical Engineering",
+  };
 
   const onChangeLevel = (e) => {
     console.log(e.target.value);
@@ -33,8 +45,8 @@ function StudentPortal() {
             <p className="text-sm lg:text-lg text-[#333333] w-[30%] lg:w-[20%]">
               Full Name:
             </p>
-            <p className="text-sm lg:text-lg text-[#333333] text-left">
-              Afuadajo Emmanuel
+            <p className="text-sm lg:text-lg text-[#333333] text-left capitalize">
+              {fullname}
             </p>
           </div>
           <div className="flex justify-start">
@@ -42,7 +54,7 @@ function StudentPortal() {
               Email:
             </p>
             <p className="text-sm lg:text-lg text-[#333333] text-left">
-              aquilaafuadajo@gmail.com
+              {email}
             </p>
           </div>
           <div className="flex justify-start">
@@ -50,16 +62,14 @@ function StudentPortal() {
               Department:
             </p>
             <p className="text-sm lg:text-lg text-[#333333] text-left">
-              Electronic and Computer Engineering
+              {departmentFull[dept]}
             </p>
           </div>
           <div className="flex justify-start">
             <p className="text-sm lg:text-lg text-[#333333] w-[30%] lg:w-[20%]">
               Level:
             </p>
-            <p className="text-sm lg:text-lg text-[#333333] text-left">
-              500(Level)
-            </p>
+            <p className="text-sm lg:text-lg text-[#333333] text-left">{lvl}</p>
           </div>
         </div>
       </div>
