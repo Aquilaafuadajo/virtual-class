@@ -14,7 +14,7 @@ import CustomDropdown from "../../../components/customDropdown";
 // utils
 import { emailRule, inputRuleNoPattern } from "../../../utils/validation";
 // firebase
-import { signup } from "../../../firebase/firebase";
+import { signup } from "../../../service/firebase";
 
 function StudentSignUp() {
   const { handleSubmit, control, errors } = useForm({

@@ -18,7 +18,19 @@ import { ReactComponent as ChatIcon } from "../../assets/icons/chat.svg";
 import "./index.css";
 
 function Classroom() {
+  const getUserStream = async () => {
+    const localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true,
+    });
+
+    return localStream;
+  };
   // get user from local storage / app context
+  /**
+   * if user is teacher set default preferences to be editable
+   * for students, disable controls, only teacher can update individual students preferences. Only then can the student be allowed to speak.
+   */
   // if user is teacher, present teacher controls else present student controls
   const [isRecording, setIsRecording] = useState(false);
   const toggleRecording = () => {

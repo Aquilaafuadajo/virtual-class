@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useHistory } from "react-router-dom";
 
@@ -14,7 +14,7 @@ import AppContext from "../../contexts/AppContext";
 import { emailRule, inputRuleNoPattern } from "../../utils/validation";
 
 // firebase
-import { login, getUser } from "../../firebase/firebase";
+import { login, getUser } from "../../service/firebase";
 
 function TeacherSignup() {
   const [error, setError] = useState("");
@@ -69,6 +69,18 @@ function TeacherSignup() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const localUser = localStorage.getItem("user");
+    if (localUser) {
+      const { userId, role } = JSON.parse(localUser);
+      if (role === "admin") {
+        history.push(`/app/admin/${userId}`);
+      } else {
+        history.push(`/app/${user.userId}`);
+      }
+    }
+  });
 
   return (
     <OnboardingLayout>

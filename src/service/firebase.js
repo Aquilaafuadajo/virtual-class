@@ -32,16 +32,13 @@ const app = initializeApp(firebaseConfig);
 
 export const db = getDatabase(app);
 export const usersRef = ref(db, "users");
+export const classroomRef = ref(db, "classrooms");
 
 export const signup = async (data, onSuccess, onError) => {
   // check for existing user
   await get(query(usersRef, orderByChild("email"), equalTo(data.email)))
     .then(async (snapshot) => {
       if (snapshot.exists()) {
-        // const user = Object.values(snapshot.val())[0];
-        // if (user.status && user.status === "pending") {
-        //   return onError("This user is awaiting approval");
-        // }
         return onError("User with email already exists!");
       } else {
         const newUserId = push(usersRef).key;
@@ -194,3 +191,5 @@ export const getPendingUsers = async (onSuccess, onError) => {
     })
     .catch((error) => onError(error.message));
 };
+
+export const createClassroom = async (data, onSuccess, onError) => {};

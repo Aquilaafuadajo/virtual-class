@@ -19,7 +19,7 @@ function CreateLectureModal({ toggleIsOpen }) {
   const [isLoading, setIsLoading] = useState(false);
   const [lectureRoomId, setLectureRoomId] = useState("");
 
-  const onCreate = () => {
+  const onCreate = (data) => {
     // generate room link
     setLectureRoomId("slkslkdjfsl");
   };

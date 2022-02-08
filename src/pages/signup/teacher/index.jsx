@@ -24,7 +24,7 @@ import {
   teacherSignUp,
   confirmTeacherSignUp,
   getUserToken,
-} from "../../../firebase/firebase";
+} from "../../../service/firebase";
 
 // check route if there's a token
 // if token present form, if not present request token form

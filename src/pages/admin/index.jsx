@@ -8,7 +8,7 @@ import TokenSuccess from "./components/TokenSuccessModal";
 import AppContext from "../../contexts/AppContext";
 
 // firebase
-import { getPendingUsers, saveUserToken } from "../../firebase/firebase";
+import { getPendingUsers, saveUserToken } from "../../service/firebase";
 
 // utils
 import { generateToken, verifyToken } from "../../utils/jwt";
@@ -24,6 +24,7 @@ function AdminPortal() {
   const [isLoading, setIsLoading] = useState(false);
   const [isButtonLoading, setIsButtonLoading] = useState(false);
   const [pendingUsers, setPendingUsers] = useState([]);
+  // fetch pending users, filter the ones with token and check if the token has expired, if the token expired, add them to pending users. Else only add the ones with status pending.
   const [token, setToken] = useState("");
 
   const onTokenGenerate = (data) => {
