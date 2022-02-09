@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+
+// context
+import AppContext from "../../../contexts/AppContext";
 
 // components
 import CustomInput from "../../../components/customInput";
@@ -15,13 +18,31 @@ import { ReactComponent as ExternalLink } from "../../../assets/icons/external_l
 import { levelOptions, departmentOptions } from "../../../utils/constants";
 import { inputRuleNoPattern } from "../../../utils/validation";
 
+// firebase
+import { createClassroom } from "../../../service/firebase";
+
 function CreateLectureModal({ toggleIsOpen }) {
+  const { user } = useContext(AppContext);
   const [isLoading, setIsLoading] = useState(false);
   const [lectureRoomId, setLectureRoomId] = useState("");
 
-  const onCreate = (data) => {
-    // generate room link
-    setLectureRoomId("slkslkdjfsl");
+  const onCreate = async (data) => {
+    setIsLoading(true);
+    await createClassroom(
+      {
+        teacherId: user.userId,
+        teacherName: user.fullname,
+        ...data,
+      },
+      (classroomId) => {
+        setLectureRoomId(classroomId);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.log(error);
+        setIsLoading(false);
+      }
+    );
   };
 
   const { handleSubmit, control, errors } = useForm({
@@ -67,6 +88,7 @@ function CreateLectureModal({ toggleIsOpen }) {
           text="Create Lecture Room"
           onClick={handleSubmit(onCreate)}
           isLoading={isLoading}
+          disabled={!!lectureRoomId}
         />
         {lectureRoomId && (
           <div className="flex items-center justify-center">

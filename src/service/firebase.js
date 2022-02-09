@@ -33,6 +33,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 export const usersRef = ref(db, "users");
 export const classroomRef = ref(db, "classrooms");
+export const connectedRef = ref(db, ".info/connected");
 
 export const signup = async (data, onSuccess, onError) => {
   // check for existing user
@@ -192,4 +193,9 @@ export const getPendingUsers = async (onSuccess, onError) => {
     .catch((error) => onError(error.message));
 };
 
-export const createClassroom = async (data, onSuccess, onError) => {};
+export const createClassroom = async (data, onSuccess, onError) => {
+  const newClassroomId = push(classroomRef).key;
+  await set(ref(db, `classrooms/${newClassroomId}`), { metadata: data })
+    .then(onSuccess(newClassroomId))
+    .catch((error) => onError(error.message));
+};

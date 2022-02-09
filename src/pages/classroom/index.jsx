@@ -1,8 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useHistory } from "react-router-dom";
+
+// firebase
+import {
+  getDatabase,
+  child,
+  push,
+  ref,
+  set,
+  update,
+  query,
+  orderByChild,
+  equalTo,
+  onValue,
+  onDisconnect,
+  get,
+} from "firebase/database";
+import { db, classroomRef, connectedRef } from "../../service/firebase";
 
 // components
 import Drawer from "./components/Drawer";
 import ControlButton from "./components/ControlButton";
+
+// context
+import AppContext from "../../contexts/AppContext";
 
 // icons
 import { ReactComponent as MicIcon } from "../../assets/icons/mic.svg";
@@ -17,15 +38,55 @@ import { ReactComponent as ChatIcon } from "../../assets/icons/chat.svg";
 
 import "./index.css";
 
-function Classroom() {
+function Classroom(props) {
+  const history = useHistory();
+  const { user } = useContext(AppContext);
+  useEffect(() => {
+    if (!user) {
+      history.push("/login");
+    }
+  }, []);
+  const isTeacher = user.role === "teacher";
+  const [mainStream, setMainStream] = useState(null);
+  const [preferences, setPreferences] = useState({
+    audio: isTeacher,
+    video: false,
+    screen: false,
+  });
+
   const getUserStream = async () => {
     const localStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: true,
+      video: isTeacher,
     });
 
     return localStream;
   };
+
+  const participantRef = ref(
+    db,
+    `classrooms/${props.match.params.id}/participants`
+  );
+  useEffect(() => {
+    async function initializeApp() {
+      // get classroom metadata and store in state then display metadata info in ui
+      const stream = await getUserStream();
+      stream.getVideoTracks()[0].enabled = false;
+      stream.getAudioTracks()[0].enabled = isTeacher;
+      setMainStream(stream);
+      onValue(connectedRef, (snap) => {
+        if (snap.val()) {
+          const userStatusRef = push(participantRef, {
+            userId: user.userId,
+            userName: user.fullname,
+            preference: preferences,
+          });
+          onDisconnect(userStatusRef).remove();
+        }
+      });
+    }
+    initializeApp();
+  }, []);
   // get user from local storage / app context
   /**
    * if user is teacher set default preferences to be editable
