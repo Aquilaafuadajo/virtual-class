@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useHistory } from "react-router-dom";
 
+// redux
+import {
+  setMainStream,
+  addParticipant,
+  setUser,
+  setClassroomInfo,
+  removeParticipant,
+  updateParticipant,
+} from "../../store/actioncreator";
+import { connect } from "react-redux";
+
 // firebase
 import {
   getDatabase,
@@ -14,9 +25,19 @@ import {
   equalTo,
   onValue,
   onDisconnect,
+  onChildChanged,
+  onChildAdded,
+  onChildRemoved,
   get,
 } from "firebase/database";
-import { db, classroomRef, connectedRef } from "../../service/firebase";
+import {
+  db,
+  classroomRef,
+  connectedRef,
+  getClassroomInfo,
+  getClassroomParticipants,
+} from "../../service/firebase";
+import { addConnection } from "../../service/peerConnection";
 
 // components
 import Drawer from "./components/Drawer";
@@ -24,6 +45,7 @@ import ControlButton from "./components/ControlButton";
 
 // context
 import AppContext from "../../contexts/AppContext";
+import ClassroomContext from "../../contexts/ClassroomContext";
 
 // icons
 import { ReactComponent as MicIcon } from "../../assets/icons/mic.svg";
@@ -47,12 +69,6 @@ function Classroom(props) {
     }
   }, []);
   const isTeacher = user.role === "teacher";
-  const [mainStream, setMainStream] = useState(null);
-  const [preferences, setPreferences] = useState({
-    audio: isTeacher,
-    video: false,
-    screen: false,
-  });
 
   const getUserStream = async () => {
     const localStream = await navigator.mediaDevices.getUserMedia({
@@ -70,23 +86,83 @@ function Classroom(props) {
   useEffect(() => {
     async function initializeApp() {
       // get classroom metadata and store in state then display metadata info in ui
-      const stream = await getUserStream();
-      stream.getVideoTracks()[0].enabled = false;
-      stream.getAudioTracks()[0].enabled = isTeacher;
-      setMainStream(stream);
-      onValue(connectedRef, (snap) => {
-        if (snap.val()) {
-          const userStatusRef = push(participantRef, {
-            userId: user.userId,
-            userName: user.fullname,
-            preference: preferences,
+      localStorage.setItem("classroomKey", props.match.params.id);
+      await getClassroomInfo(
+        { classroomKey: props.match.params.id },
+        async (data) => {
+          props.setClassroomInfo(data);
+          const stream = await getUserStream();
+          if (isTeacher) {
+            stream.getVideoTracks()[0].enabled = false;
+            stream.getAudioTracks()[0].enabled = true;
+          } else {
+            stream.getAudioTracks()[0].enabled = false;
+          }
+          props.setMainStream(stream);
+          onValue(connectedRef, (snap) => {
+            if (snap.val()) {
+              const participantInfo = {
+                userId: user.userId,
+                userName: user.fullname,
+                preference: {
+                  audio: isTeacher,
+                  video: false,
+                  screen: false,
+                },
+              };
+              const currentParticipantRef = push(
+                participantRef,
+                participantInfo
+              );
+              // if teacher, end lecture and delete room else just remove student from participants
+              props.setUser({
+                [currentParticipantRef.key]: { ...participantInfo },
+              });
+              onDisconnect(currentParticipantRef).remove();
+            }
           });
-          onDisconnect(userStatusRef).remove();
+        },
+        (error) => {
+          history.push(`/app/${user.userId}`);
+          alert(error);
         }
-      });
+      );
     }
     initializeApp();
   }, []);
+
+  const isLocalParticipantSet = !!props.user;
+  const isStreamSet = !!props.stream;
+
+  useEffect(() => {
+    if (isLocalParticipantSet && isStreamSet) {
+      onChildAdded(participantRef, async (snap) => {
+        if (snap.exists()) {
+          // console.log({ participants: snap.val() });
+          const preferenceRef = child(participantRef, `${snap.key}/preference`);
+          onChildChanged(preferenceRef, (snapshot) => {
+            props.updateParticipant({
+              [snap.key]: {
+                [preferenceRef.key]: snapshot.val(),
+              },
+            });
+          });
+
+          props.addParticipant({
+            [snap.key]: {
+              ...snap.val(),
+            },
+          });
+        }
+      });
+      onChildRemoved(participantRef, (snap) => {
+        if (snap.val()) {
+          props.removeParticipant(snap.key);
+        }
+      });
+    }
+  }, [isLocalParticipantSet, isStreamSet]);
+
   // get user from local storage / app context
   /**
    * if user is teacher set default preferences to be editable
@@ -219,4 +295,22 @@ function Classroom(props) {
   );
 }
 
-export default Classroom;
+const mapStateToProps = (state) => {
+  return {
+    stream: state.mainStream,
+    user: state.currentUser,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    setMainStream: (stream) => dispatch(setMainStream(stream)),
+    addParticipant: (user) => dispatch(addParticipant(user)),
+    setUser: (user) => dispatch(setUser(user)),
+    removeParticipant: (userId) => dispatch(removeParticipant(userId)),
+    updateParticipant: (user) => dispatch(updateParticipant(user)),
+    setClassroomInfo: (info) => dispatch(setClassroomInfo(info)),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Classroom);

@@ -199,3 +199,33 @@ export const createClassroom = async (data, onSuccess, onError) => {
     .then(onSuccess(newClassroomId))
     .catch((error) => onError(error.message));
 };
+
+export const getClassroomInfo = async (data, onSuccess, onError) => {
+  await get(child(classroomRef, `${data.classroomKey}/metadata`))
+    .then(async (snapshot) => {
+      if (snapshot.exists()) {
+        onSuccess({ ...snapshot.val() });
+      } else {
+        return onError(
+          "Oops! something went wrong, could not fetch classroom data"
+        );
+      }
+    })
+    .catch((error) => onError(error.message));
+};
+
+export const getClassroomParticipants = async (data, onSuccess, onError) => {
+  await get(child(classroomRef, `${data.classroomKey}/participants`))
+    .then(async (snapshot) => {
+      if (snapshot.exists()) {
+        onSuccess({ ...snapshot.val() });
+      } else {
+        return onError(
+          "Oops! something went wrong, could not fetch list of participants"
+        );
+      }
+    })
+    .catch((error) => onError(error.message));
+};
+
+// end class function

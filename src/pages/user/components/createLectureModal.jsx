@@ -30,7 +30,7 @@ function CreateLectureModal({ toggleIsOpen }) {
     setIsLoading(true);
     await createClassroom(
       {
-        teacherId: user.userId,
+        ownerId: user.userId,
         teacherName: user.fullname,
         ...data,
       },
