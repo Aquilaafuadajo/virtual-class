@@ -1,21 +1,5 @@
 // firebase
-import {
-  getDatabase,
-  child,
-  push,
-  ref,
-  set,
-  update,
-  query,
-  orderByChild,
-  equalTo,
-  onValue,
-  onDisconnect,
-  get,
-  onChildAdded,
-  onChildChanged,
-  onChildRemoved,
-} from "firebase/database";
+import { child, push, ref, set, update, onChildAdded } from "firebase/database";
 import { db } from "./firebase";
 import { store } from "..";
 
@@ -56,14 +40,12 @@ export const addConnection = (newUser, currentUser, stream) => {
   return newUser;
 };
 
-export const updatePreference = async (userId, preference) => {
-  await update(child(participantRef, `${userId}/preference`));
-  // const currentParticipantRef = participantRef
-  //   .child(userId)
-  //   .child("preferences");
-  // setTimeout(() => {
-  //   currentParticipantRef.update(preference);
-  // });
+export const updatePreference = (userId, preference) => {
+  const currentParticipantRef = child(participantRef, `${userId}/preference`);
+
+  setTimeout(() => {
+    update(currentParticipantRef, preference);
+  });
 };
 
 export const createOffer = async (peerConnection, receiverId, createdID) => {

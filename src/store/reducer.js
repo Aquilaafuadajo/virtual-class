@@ -50,10 +50,6 @@ export const userReducer = (state = defaultUserState, action) => {
 
     if (currentUserId === newUserId)
       payload.newUser[newUserId].currentUser = true;
-    console.log("participants: ", {
-      ...state.participants,
-      ...payload.newUser,
-    });
     let participants = {
       ...state.participants,
       ...payload.newUser,
@@ -88,7 +84,6 @@ export const userReducer = (state = defaultUserState, action) => {
       ...state,
       participants,
     };
-    console.log(state.participants);
     return state;
   } else if (action.type === UPDATE_USER) {
     let payload = action.payload;
@@ -117,6 +112,7 @@ export const userReducer = (state = defaultUserState, action) => {
       ...state.participants,
       ...payload.newUser,
     };
+    console.log(participants);
     state = {
       ...state,
       participants,

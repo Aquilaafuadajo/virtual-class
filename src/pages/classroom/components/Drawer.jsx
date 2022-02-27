@@ -1,6 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
 
+import { updateParticipant } from "../../../store/actioncreator";
+
 // icons
 import { ReactComponent as CancelIcon } from "../../../assets/icons/cancel.svg";
 import { ReactComponent as SendIcon } from "../../../assets/icons/Send.svg";
@@ -11,10 +13,19 @@ const Drawer = ({
   drawerContent,
   onCloseDrawer,
   participants,
+  updateParticipant,
   chatList,
   onSend,
+  user,
 }) => {
   const ParticipantsUI = () => {
+    const onMicClick = (key, participant) => {
+      updateParticipant({
+        [key]: {
+          audio: !participant.audio,
+        },
+      });
+    };
     return (
       <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 p-8 relative">
         <div className="flex justify-between items-center h-max w-full mb-5">
@@ -26,27 +37,27 @@ const Drawer = ({
           </button>
         </div>
         <p className="text-lg text-[#828282] font-bold mb-5">In call</p>
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex flex-col text-[#333333]">
-            <p className="text-sm">Emmanuel Afuadajo (You)</p>
-            <p className="text-sm">Meeting host</p>
-          </div>
-          <button className="p-3">
-            <MicIcon className="drawer-mic" />
-          </button>
-        </div>
         {Object.keys(participants ? participants : {}).map((key) => (
-          <p key={key}>{key}</p>
-        ))}
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex flex-col text-[#333333]">
-            <p className="text-sm">Emmanuel Afuadajo (You)</p>
-            <p className="text-sm">Meeting host</p>
+          <div key={key} className="flex justify-between items-center mb-3">
+            <div className="flex flex-col text-[#333333]">
+              <p className="text-sm">
+                {participants[key].userName}{" "}
+                {user?.userId === participants?.userId ? "(You)" : null}
+              </p>
+              {/* <p className="text-sm">Meeting host</p> */}
+            </div>
+            <button
+              onClick={() => onMicClick(key, participants[key])}
+              className="p-3"
+            >
+              {participants[key].audio ? (
+                <MicIcon className="drawer-mic" />
+              ) : (
+                <MicStrikeIcon className="drawer-mic-strike" />
+              )}
+            </button>
           </div>
-          <button className="p-3">
-            <MicIcon className="drawer-mic" />
-          </button>
-        </div>
+        ))}
       </div>
     );
   };
@@ -94,19 +105,15 @@ const Drawer = ({
 
 const mapStateToProps = (state) => {
   return {
+    user: state.currentUser,
     participants: state.participants,
   };
 };
 
-// const mapDispatchToProps = (dispatch) => {
-//   return {
-//     setMainStream: (stream) => dispatch(setMainStream(stream)),
-//     addParticipant: (user) => dispatch(addParticipant(user)),
-//     setUser: (user) => dispatch(setUser(user)),
-//     removeParticipant: (userId) => dispatch(removeParticipant(userId)),
-//     updateParticipant: (user) => dispatch(updateParticipant(user)),
-//     setClassroomInfo: (info) => dispatch(setClassroomInfo(info)),
-//   };
-// };
+const mapDispatchToProps = (dispatch) => {
+  return {
+    updateParticipant: (info) => dispatch(updateParticipant(info)),
+  };
+};
 
-export default connect(mapStateToProps)(Drawer);
+export default connect(mapStateToProps, mapDispatchToProps)(Drawer);

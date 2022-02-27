@@ -10,6 +10,15 @@
   fill: #333333;
 }
 
+.drawer-mic-strike .mic {
+  fill: #333333;
+}
+
+.video {
+	-webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
 /* Customize website's scrollbar like Mac OS
 	Not supports in Firefox and IE */
 
