@@ -30,7 +30,7 @@ export const setClassroomInfo = (info) => {
   return {
     type: SET_CLASSROOM_INFO,
     payload: {
-      classRoomInfo: info,
+      classroomInfo: info,
     },
   };
 };

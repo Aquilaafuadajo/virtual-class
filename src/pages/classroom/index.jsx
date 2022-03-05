@@ -48,12 +48,12 @@ function Classroom(props) {
       history.push("/login");
     }
   }, []);
-  const isTeacher = user.role === "teacher";
+  const isTeacher = user?.role === "teacher";
 
   const getUserStream = async () => {
     const localStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: isTeacher,
+      video: true,
     });
 
     return localStream;
@@ -72,12 +72,9 @@ function Classroom(props) {
         async (data) => {
           props.setClassroomInfo(data);
           const stream = await getUserStream();
-          if (isTeacher) {
-            stream.getVideoTracks()[0].enabled = false;
-            stream.getAudioTracks()[0].enabled = true;
-          } else {
-            stream.getAudioTracks()[0].enabled = false;
-          }
+          stream.getVideoTracks()[0].enabled = true;
+          stream.getAudioTracks()[0].enabled = true;
+
           props.setMainStream(stream);
           onValue(connectedRef, (snap) => {
             if (snap.val()) {
@@ -154,12 +151,36 @@ function Classroom(props) {
   const videoRef = useRef(null);
 
   useEffect(() => {
-    if (videoRef.current) {
-      // if teacher, video ref is props.stream else it's remote stream
+    const participants = Object.keys(props.participants);
+
+    if (videoRef.current && isTeacher) {
       videoRef.current.srcObject = props.stream;
       videoRef.current.muted = true;
     }
-  }, [props.user, props.stream]);
+    if (!isTeacher) {
+      const ownerId = participants.find(
+        (idx) => props.participants[idx].userId === props.classroomInfo.ownerId
+      );
+      const owner = props.participants[ownerId];
+      if (owner) {
+        const pc = owner.peerConnection;
+        const remoteStream = new MediaStream();
+        pc.ontrack = (event) => {
+          event.streams[0].getTracks().forEach((track) => {
+            remoteStream.addTrack(track);
+          });
+          if (videoRef) {
+            videoRef.current.srcObject = remoteStream;
+          }
+        };
+      }
+    }
+  }, [
+    props.user,
+    props.stream,
+    props.classroomInfo,
+    Object.values(props.participants).length,
+  ]);
 
   const currentUser = props.user ? Object.values(props.user)[0] : null;
 
@@ -176,6 +197,19 @@ function Classroom(props) {
     }
   };
 
+  const updateStream = (stream) => {
+    for (let key in props.participants) {
+      const sender = props.participants[key];
+      console.log({ sender });
+      if (sender.currentUser) continue;
+      const peerConnection = sender.peerConnection
+        .getSenders()
+        .find((s) => (s.track ? s.track.kind === "video" : false));
+      peerConnection.replaceTrack(stream.getVideoTracks()[0]);
+    }
+    props.setMainStream(stream);
+  };
+
   const onScreenShareEnd = async () => {
     props.stream.getTracks().forEach((track) => track.stop());
     const localStream = await navigator.mediaDevices.getUserMedia({
@@ -187,7 +221,7 @@ function Classroom(props) {
       props.user
     )[0].video;
 
-    props.setMainStream(localStream);
+    updateStream(localStream);
 
     props.updateUser({ screen: false });
   };
@@ -217,11 +251,17 @@ function Classroom(props) {
 
       mediaStream.getVideoTracks()[0].onended = onScreenShareEnd;
 
-      props.setMainStream(mediaStream);
+      updateStream(mediaStream);
 
       props.updateUser({ screen: true });
     }
   };
+
+  const participantKey = Object.keys(props.participants);
+  const screenPresenter = participantKey.find((element) => {
+    const currentParticipant = props.participants[element];
+    return currentParticipant.screen || currentParticipant.video;
+  });
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState("");
@@ -244,7 +284,11 @@ function Classroom(props) {
         currentUser={currentUser}
         videoRef={videoRef}
         showAvatar={
-          !currentUser?.video && !currentUser?.screen && currentUser?.userName
+          isTeacher
+            ? !currentUser?.video &&
+              !currentUser?.screen &&
+              currentUser?.userName
+            : !screenPresenter
         }
       />
       <div className="absolute bottom-0 right-0 left-0 flex flex-col">
@@ -289,6 +333,8 @@ const mapStateToProps = (state) => {
   return {
     stream: state.mainStream,
     user: state.currentUser,
+    participants: state.participants,
+    classroomInfo: state.classroomInfo,
   };
 };
 

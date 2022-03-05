@@ -15,7 +15,7 @@ import {
 } from "../service/peerConnection";
 
 let defaultUserState = {
-  classRoomInfo: null,
+  classroomInfo: null,
   mainStream: null,
   participants: {},
   currentUser: null,
