@@ -200,12 +200,15 @@ function Classroom(props) {
   const updateStream = (stream) => {
     for (let key in props.participants) {
       const sender = props.participants[key];
-      console.log({ sender });
       if (sender.currentUser) continue;
-      const peerConnection = sender.peerConnection
+      const peerConnectionVideo = sender.peerConnection
         .getSenders()
         .find((s) => (s.track ? s.track.kind === "video" : false));
-      peerConnection.replaceTrack(stream.getVideoTracks()[0]);
+      peerConnectionVideo.replaceTrack(stream.getVideoTracks()[0]);
+      const peerConnectionAudio = sender.peerConnection
+        .getSenders()
+        .find((s) => (s.track ? s.track.kind === "audio" : false));
+      peerConnectionAudio.replaceTrack(stream.getAudioTracks()[0]);
     }
     props.setMainStream(stream);
   };
@@ -220,6 +223,9 @@ function Classroom(props) {
     localStream.getVideoTracks()[0].enabled = Object.values(
       props.user
     )[0].video;
+    localStream.getAudioTracks()[0].enabled = Object.values(
+      props.user
+    )[0].audio;
 
     updateStream(localStream);
 
@@ -235,19 +241,25 @@ function Classroom(props) {
       if (navigator.getDisplayMedia) {
         mediaStream = await navigator.getDisplayMedia({
           video: true,
-          audio: true,
         });
       } else if (navigator.mediaDevices.getDisplayMedia) {
         mediaStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
-          audio: true,
         });
       } else {
         mediaStream = await navigator.mediaDevices.getUserMedia({
           video: { mediaSource: "screen" },
-          audio: true,
         });
       }
+
+      const audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      const audioTrack = audioStream.getAudioTracks()[0];
+      audioTrack.enabled = Object.values(props.user)[0].audio;
+
+      mediaStream.addTrack(audioTrack);
 
       mediaStream.getVideoTracks()[0].onended = onScreenShareEnd;
 
