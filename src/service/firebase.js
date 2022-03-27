@@ -1,3 +1,4 @@
+import { async } from "@firebase/util";
 import { initializeApp } from "firebase/app";
 import {
   getDatabase,
@@ -249,6 +250,14 @@ export const uploadLecture = async (data, onSuccess, onError) => {
         .catch((error) => onError(error.message));
     })
     .catch((error) => onError(error.message));
+};
+
+export const setWaving = (userName, id) => {
+  set(ref(db, `classrooms/${id}/waving`), {
+    username: `${userName}-${generateVerificationCode()}`,
+  })
+    .then((snapshot) => null)
+    .catch((err) => console.log({ err }));
 };
 
 // end class function

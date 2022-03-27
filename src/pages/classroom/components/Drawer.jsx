@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { connect } from "react-redux";
 
 import { push } from "firebase/database";
@@ -77,6 +77,7 @@ const Drawer = ({
   };
   const ChatUI = () => {
     const [message, setMessage] = useState("");
+    const chatEndRef = useRef(null);
     const sendMessage = () => {
       if (!message.trim().length) {
         return;
@@ -90,6 +91,11 @@ const Drawer = ({
       addMessage({
         [newMessageRef.key]: messageDetails,
       });
+      console.log(document.getElementById("chatEnd"));
+      document.getElementById("chatEnd").scrollIntoView({ behavior: "smooth" });
+      // if (chatEndRef) {
+      //   chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+      // }
     };
     return (
       <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 p-8 relative">
@@ -117,8 +123,9 @@ const Drawer = ({
               <p className="text-sm text-[#282828]">{messages[key].message}</p>
             </div>
           ))}
+          <p id="chatEnd" ref={chatEndRef} className=" invisible"></p>
         </div>
-        <div className="flex bg-[#EDF2F7] rounded-3xl border overflow-hidden px-4 py-3 mt-auto">
+        <div className="flex bg-[#EDF2F7] rounded-3xl border overflow-hidden px-4 py-3 mt-auto items-center">
           <input
             placeholder="Send a message to everyone"
             type="text"

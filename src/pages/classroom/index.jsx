@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { connect } from "react-redux";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // redux
 import {
@@ -64,6 +66,7 @@ function Classroom(props) {
     db,
     `classrooms/${props.match.params.id}/participants`
   );
+  const wavingRef = ref(db, `classrooms/${props.match.params.id}/waving`);
   const messagesRef = ref(db, `classrooms/${props.match.params.id}/messages`);
   useEffect(() => {
     async function initializeApp() {
@@ -160,6 +163,9 @@ function Classroom(props) {
           },
         });
       });
+      onChildChanged(wavingRef, async (snap) => {
+        notify(`👋🏼 ${snap.val().split("-")[0]} is waving...`);
+      });
     }
   }, [isLocalParticipantSet, isStreamSet]);
 
@@ -191,6 +197,7 @@ function Classroom(props) {
             remoteStream.addTrack(track);
           });
           if (videoRef) {
+            props.setRemoteStream(remoteStream);
             videoRef.current.srcObject = remoteStream;
           }
         };
@@ -304,9 +311,21 @@ function Classroom(props) {
     setDrawerOpen(false);
     setDrawerContent("");
   };
+  const notify = (text) => toast(text);
 
   return (
     <div className="w-screen h-screen bg-[#282828] relative flex justify-center items-center">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <MainScreen
         currentUser={currentUser}
         videoRef={videoRef}
@@ -347,6 +366,7 @@ function Classroom(props) {
           </div>
         </div>
         <Footer
+          match={props.match}
           isTeacher={isTeacher}
           onScreenClick={onScreenClick}
           onMicClick={onMicClick}
@@ -369,6 +389,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     setMainStream: (stream) => dispatch(setMainStream(stream)),
+    setRemoteStream: (stream) => dispatch(setRemoteStream(stream)),
     updateUser: (stream) => dispatch(updateUser(stream)),
     addParticipant: (user) => dispatch(addParticipant(user)),
     setUser: (user) => dispatch(setUser(user)),

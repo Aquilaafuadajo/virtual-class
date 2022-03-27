@@ -2,7 +2,7 @@ import React, { useState, forwardRef } from "react";
 import { connect } from "react-redux";
 import { Popover } from "react-tiny-popover";
 
-import { uploadLecture } from "../../../service/firebase";
+import { uploadLecture, setWaving } from "../../../service/firebase";
 
 // components
 import ControlButton from "./ControlButton";
@@ -141,6 +141,9 @@ const Footer = (props) => {
       return;
     }
     // leave room
+  };
+  const handleWaving = () => {
+    setWaving(Object.values(props.user)[0].userName, props.match.params.id);
   };
   const micClick = () => {
     props.onMicClick(!Object.values(props.user)[0].audio);
@@ -298,6 +301,9 @@ const Footer = (props) => {
             className="bg-[#EB5757] px-3 rounded-3xl mx-3"
             buttonIcon={<HangupIcon />}
           />
+          <button onClick={handleWaving} className="ml-2 text-4xl ">
+            👋🏼
+          </button>
         </div>
       )}
     </div>

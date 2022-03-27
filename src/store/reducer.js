@@ -8,6 +8,7 @@ import {
   UPDATE_USER,
   UPDATE_PARTICIPANT,
   ADD_MESSAGE,
+  SET_REMOTE_STREAM,
 } from "./actiontypes";
 
 import {
@@ -21,10 +22,18 @@ let defaultUserState = {
   participants: {},
   currentUser: null,
   messages: {},
+  remoteStream: null,
 };
 
 export const userReducer = (state = defaultUserState, action) => {
   if (action.type === SET_MAIN_STREAM) {
+    let payload = action.payload;
+    state = {
+      ...state,
+      ...payload,
+    };
+    return state;
+  } else if (action.type === SET_REMOTE_STREAM) {
     let payload = action.payload;
     state = {
       ...state,
