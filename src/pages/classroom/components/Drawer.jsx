@@ -1,7 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 
-import { updateParticipant } from "../../../store/actioncreator";
+import { push } from "firebase/database";
+
+import {
+  addMessage,
+  updateParticipant as updatePcpnt,
+} from "../../../store/actioncreator";
+
+import formatAMPM from "../../../utils/formatDate";
 
 // icons
 import { ReactComponent as CancelIcon } from "../../../assets/icons/cancel.svg";
@@ -14,8 +21,10 @@ const Drawer = ({
   onCloseDrawer,
   participants,
   updateParticipant,
-  chatList,
-  onSend,
+  classroomInfo,
+  messagesRef,
+  messages,
+  addMessage,
   user,
 }) => {
   const ParticipantsUI = () => {
@@ -26,6 +35,7 @@ const Drawer = ({
         },
       });
     };
+    console.log(user);
     return (
       <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 p-8 relative">
         <div className="flex justify-between items-center h-max w-full mb-5">
@@ -41,14 +51,18 @@ const Drawer = ({
           <div key={key} className="flex justify-between items-center mb-3">
             <div className="flex flex-col text-[#333333]">
               <p className="text-sm">
-                {participants[key].userName}{" "}
-                {user?.userId === participants?.userId ? "(You)" : null}
+                {participants[key].userName} {user[key] ? "(You)" : null}
               </p>
               {/* <p className="text-sm">Meeting host</p> */}
             </div>
             <button
               onClick={() => onMicClick(key, participants[key])}
               className="p-3"
+              disabled={
+                user && Object.values(user)[0]?.userId === classroomInfo.ownerId
+                  ? false
+                  : true
+              }
             >
               {participants[key].audio ? (
                 <MicIcon className="drawer-mic" />
@@ -62,6 +76,21 @@ const Drawer = ({
     );
   };
   const ChatUI = () => {
+    const [message, setMessage] = useState("");
+    const sendMessage = () => {
+      if (!message.trim().length) {
+        return;
+      }
+      const messageDetails = {
+        message,
+        time: formatAMPM(new Date()),
+        username: Object.values(user)[0]?.userName,
+      };
+      const newMessageRef = push(messagesRef, messageDetails);
+      addMessage({
+        [newMessageRef.key]: messageDetails,
+      });
+    };
     return (
       <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 p-8 relative">
         <div className="flex justify-between items-center h-max w-full mb-5">
@@ -79,21 +108,24 @@ const Drawer = ({
           </p>
         </div>
         <div className="flex flex-col w-full overflow-y-scroll drawer-scroll-area">
-          <div className="flex flex-col mb-3">
-            <p className="text-sm text[#282828] mb-3">
-              <span className="font-bold mr-3">You</span>
-              <span>10:55 PM</span>
-            </p>
-            <p className="text-sm text-[#282828]">Hello everyone</p>
-          </div>
+          {Object.keys(messages ? messages : {}).map((key) => (
+            <div key={key} className="flex flex-col mb-3">
+              <p className="text-sm text[#282828] mb-1">
+                <span className="font-bold mr-3">{messages[key].username}</span>
+                <span>{messages[key].time}</span>
+              </p>
+              <p className="text-sm text-[#282828]">{messages[key].message}</p>
+            </div>
+          ))}
         </div>
         <div className="flex bg-[#EDF2F7] rounded-3xl border overflow-hidden px-4 py-3 mt-auto">
           <input
             placeholder="Send a message to everyone"
             type="text"
             className="w-full bg-inherit focus:outline-none"
+            onChange={(e) => setMessage(e.target.value)}
           />
-          <button>
+          <button onClick={sendMessage}>
             <SendIcon />
           </button>
         </div>
@@ -107,12 +139,15 @@ const mapStateToProps = (state) => {
   return {
     user: state.currentUser,
     participants: state.participants,
+    classroomInfo: state.classroomInfo,
+    messages: state.messages,
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    updateParticipant: (info) => dispatch(updateParticipant(info)),
+    updateParticipant: (info) => dispatch(updatePcpnt(info)),
+    addMessage: (msg) => dispatch(addMessage(msg)),
   };
 };
 

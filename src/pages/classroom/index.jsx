@@ -11,6 +11,7 @@ import {
   removeParticipant,
   updateParticipant,
   updateUser,
+  addMessage,
 } from "../../store/actioncreator";
 
 // firebase
@@ -63,6 +64,7 @@ function Classroom(props) {
     db,
     `classrooms/${props.match.params.id}/participants`
   );
+  const messagesRef = ref(db, `classrooms/${props.match.params.id}/messages`);
   useEffect(() => {
     async function initializeApp() {
       // get classroom metadata and store in state then display metadata info in ui
@@ -72,8 +74,8 @@ function Classroom(props) {
         async (data) => {
           props.setClassroomInfo(data);
           const stream = await getUserStream();
-          stream.getVideoTracks()[0].enabled = true;
-          stream.getAudioTracks()[0].enabled = true;
+          stream.getVideoTracks()[0].enabled = false;
+          stream.getAudioTracks()[0].enabled = isTeacher;
 
           props.setMainStream(stream);
           onValue(connectedRef, (snap) => {
@@ -128,6 +130,12 @@ function Classroom(props) {
                 [snapshot.key]: snapshot.val(),
               },
             });
+            if (
+              snapshot.key === "audio" &&
+              snap.key === Object.keys(props.user)[0]
+            ) {
+              props.stream.getAudioTracks()[0].enabled = snapshot.val();
+            }
           });
 
           const { userId, userName, preference } = snap.val();
@@ -145,10 +153,23 @@ function Classroom(props) {
           props.removeParticipant(snap.key);
         }
       });
+      onChildAdded(messagesRef, async (snap) => {
+        props.addMessage({
+          [snap.key]: {
+            ...snap.val(),
+          },
+        });
+      });
     }
   }, [isLocalParticipantSet, isStreamSet]);
 
   const videoRef = useRef(null);
+
+  const participantKey = Object.keys(props.participants);
+  const screenPresenter = participantKey.find((element) => {
+    const currentParticipant = props.participants[element];
+    return currentParticipant.screen || currentParticipant.video;
+  });
 
   useEffect(() => {
     const participants = Object.keys(props.participants);
@@ -269,12 +290,6 @@ function Classroom(props) {
     }
   };
 
-  const participantKey = Object.keys(props.participants);
-  const screenPresenter = participantKey.find((element) => {
-    const currentParticipant = props.participants[element];
-    return currentParticipant.screen || currentParticipant.video;
-  });
-
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState("");
   const presentChatUI = () => {
@@ -308,6 +323,7 @@ function Classroom(props) {
           <Drawer
             drawerContent={drawerContent}
             onCloseDrawer={() => closeDrawer()}
+            messagesRef={messagesRef}
           />
         )}
         <div className="flex justify-between px-3">
@@ -359,6 +375,7 @@ const mapDispatchToProps = (dispatch) => {
     removeParticipant: (userId) => dispatch(removeParticipant(userId)),
     updateParticipant: (user) => dispatch(updateParticipant(user)),
     setClassroomInfo: (info) => dispatch(setClassroomInfo(info)),
+    addMessage: (msg) => dispatch(addMessage(msg)),
   };
 };
 

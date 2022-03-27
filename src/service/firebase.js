@@ -12,6 +12,7 @@ import {
   onValue,
   get,
 } from "firebase/database";
+import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
 
 // send mail
 import { generateVerificationCode } from "../utils";
@@ -33,7 +34,10 @@ const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 export const usersRef = ref(db, "users");
 export const classroomRef = ref(db, "classrooms");
+export const lecturesRef = ref(db, "uploadedLectures");
 export const connectedRef = ref(db, ".info/connected");
+
+const storage = getStorage(app, "gs://react-chat-app-618b9.appspot.com");
 
 export const signup = async (data, onSuccess, onError) => {
   // check for existing user
@@ -64,6 +68,7 @@ export const login = async (data, onSuccess, onError) => {
           const code = generateVerificationCode();
           const mail = {
             to_name: user.fullname,
+            to_email: user.email,
             message: code,
           };
           onSuccess({ code });
@@ -224,6 +229,24 @@ export const getClassroomParticipants = async (data, onSuccess, onError) => {
           "Oops! something went wrong, could not fetch list of participants"
         );
       }
+    })
+    .catch((error) => onError(error.message));
+};
+
+export const uploadLecture = async (data, onSuccess, onError) => {
+  const { file, ...others } = data;
+  const name = others.fileName.split(".");
+  const uniqueName = `${name[0]}-${generateVerificationCode()}.${name[1]}`;
+  await uploadBytes(storageRef(storage, `lectures/${uniqueName}`), data.file)
+    .then(async () => {
+      const newLectureId = push(lecturesRef).key;
+      const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/react-chat-app-618b9.appspot.com/o/lectures%2F${uniqueName}?alt=media&token=dfea7ae3-2c0c-454c-ae73-c5fc5215efef`;
+      await set(ref(db, `uploadedLectures/${newLectureId}`), {
+        ...others,
+        downloadUrl,
+      })
+        .then((snapshot) => onSuccess(snapshot))
+        .catch((error) => onError(error.message));
     })
     .catch((error) => onError(error.message));
 };

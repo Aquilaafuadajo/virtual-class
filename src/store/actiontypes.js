@@ -5,3 +5,4 @@ export const SET_USER = "SET_USER";
 export const SET_CLASSROOM_INFO = "SET_CLASSROOM_INFO";
 export const UPDATE_USER = "UPDATE_USER";
 export const UPDATE_PARTICIPANT = "UPDATE_PARTICIPANT";
+export const ADD_MESSAGE = "ADD_MESSAGE";

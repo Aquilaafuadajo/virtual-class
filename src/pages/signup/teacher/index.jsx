@@ -226,7 +226,6 @@ function TeacherSignup() {
           rules={emailRule}
           control={control}
           errors={errors}
-          disabled
         />
         {!verificationCode && (
           <CustomButton

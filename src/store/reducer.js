@@ -7,6 +7,7 @@ import {
   REMOVE_PARTICIPANT,
   UPDATE_USER,
   UPDATE_PARTICIPANT,
+  ADD_MESSAGE,
 } from "./actiontypes";
 
 import {
@@ -19,6 +20,7 @@ let defaultUserState = {
   mainStream: null,
   participants: {},
   currentUser: null,
+  messages: {},
 };
 
 export const userReducer = (state = defaultUserState, action) => {
@@ -89,6 +91,7 @@ export const userReducer = (state = defaultUserState, action) => {
     let payload = action.payload;
     const userId = Object.keys(state.currentUser)[0];
     updatePreference(userId, payload.currentUser);
+    // console.log(payload.currentUser);
     state.currentUser[userId] = {
       ...state.currentUser[userId],
       ...payload.currentUser,
@@ -112,10 +115,33 @@ export const userReducer = (state = defaultUserState, action) => {
       ...state.participants,
       ...payload.newUser,
     };
+    const currentUserId = Object.keys(state.currentUser)[0];
+    const currentUser = { [newUserId]: participants[newUserId] };
+    updatePreference(Object.keys(currentUser)[0], payload.newUser[newUserId]);
     console.log(participants);
+    if (currentUserId === newUserId) {
+      state = {
+        ...state,
+        currentUser,
+        participants,
+      };
+      return state;
+    }
     state = {
       ...state,
       participants,
+    };
+    return state;
+  } else if (action.type === ADD_MESSAGE) {
+    let payload = action.payload;
+
+    let messages = {
+      ...state.messages,
+      ...payload.newMessage,
+    };
+    state = {
+      ...state,
+      messages,
     };
     return state;
   }
