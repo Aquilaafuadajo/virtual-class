@@ -7,7 +7,6 @@ import {
   UPDATE_USER,
   UPDATE_PARTICIPANT,
   ADD_MESSAGE,
-  SET_REMOTE_STREAM,
 } from "./actiontypes";
 
 export const setMainStream = (stream) => {
@@ -15,15 +14,6 @@ export const setMainStream = (stream) => {
     type: SET_MAIN_STREAM,
     payload: {
       mainStream: stream,
-    },
-  };
-};
-
-export const setRemoteStream = (stream) => {
-  return {
-    type: SET_MAIN_STREAM,
-    payload: {
-      remoteStream: stream,
     },
   };
 };

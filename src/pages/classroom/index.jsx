@@ -197,7 +197,6 @@ function Classroom(props) {
             remoteStream.addTrack(track);
           });
           if (videoRef) {
-            props.setRemoteStream(remoteStream);
             videoRef.current.srcObject = remoteStream;
           }
         };
@@ -389,7 +388,6 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     setMainStream: (stream) => dispatch(setMainStream(stream)),
-    setRemoteStream: (stream) => dispatch(setRemoteStream(stream)),
     updateUser: (stream) => dispatch(updateUser(stream)),
     addParticipant: (user) => dispatch(addParticipant(user)),
     setUser: (user) => dispatch(setUser(user)),
