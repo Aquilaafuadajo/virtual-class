@@ -22,6 +22,7 @@ import "./App.css";
 
 const App = () => {
   const localUser = localStorage.getItem("user");
+  localStorage.removeItem("classroomKey");
   const [user, setUser] = useState(localUser ? JSON.parse(localUser) : null);
 
   return (

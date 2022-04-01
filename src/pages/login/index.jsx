@@ -49,14 +49,15 @@ function TeacherSignup() {
     if (data.code === verificationCode) {
       getUser(
         data,
-        (user) => {
-          localStorage.setItem("user", JSON.stringify(user));
-          setUser(user);
+        (authenticatedUser) => {
+          setError("");
+          localStorage.setItem("user", JSON.stringify(authenticatedUser));
+          setUser(authenticatedUser);
           setIsLoading(false);
-          if (user?.role === "admin") {
-            history.push(`/app/admin/${user?.userId}`);
+          if (authenticatedUser?.role === "admin") {
+            history.push(`/app/admin/${authenticatedUser?.userId}`);
           } else {
-            history.push(`/app/${user.userId}`);
+            history.push(`/app/${authenticatedUser.userId}`);
           }
         },
         (error) => {
@@ -80,7 +81,7 @@ function TeacherSignup() {
         history.push(`/app/${user.userId}`);
       }
     }
-  });
+  }, []);
 
   return (
     <OnboardingLayout>
@@ -118,17 +119,17 @@ function TeacherSignup() {
             onClick={handleSubmit(onFinish)}
             isLoading={isLoading}
           />
-          {error && (
-            <p className="text-red-500 font-normal text-sm lg:text-lg text-center mb-3">
-              {error}
-            </p>
-          )}
           {verificationCode && (
             <p className="text-[#27AE60] font-normal text-sm lg:text-lg text-center mb-3">
               Verification code sent to email provided, please check your email.
             </p>
           )}
         </div>
+      )}
+      {error && (
+        <p className="text-red-500 font-normal text-sm lg:text-lg text-center mb-3">
+          {error}
+        </p>
       )}
     </OnboardingLayout>
   );

@@ -1,8 +1,13 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState, useContext } from "react";
 import { connect } from "react-redux";
 import { Popover } from "react-tiny-popover";
 
-import { uploadLecture, setWaving } from "../../../service/firebase";
+import {
+  uploadLecture,
+  setWaving,
+  deleteClassroom,
+} from "../../../service/firebase";
+import AppContext from "../../../contexts/AppContext";
 
 // components
 import ControlButton from "./ControlButton";
@@ -28,6 +33,7 @@ const Footer = (props) => {
   const [fileName, setFileName] = useState("");
   const [videoBlob, setVideoBlob] = useState(null);
   const [downloadLink, setDownloadLink] = useState(null);
+  const { user } = useContext(AppContext);
   let recordedBlob;
 
   const startRecording = () => {
@@ -130,16 +136,25 @@ const Footer = (props) => {
     }
     return;
   };
-  const onHangUp = () => {
+  const onHangUp = async () => {
     if (props.isTeacher) {
       const response = window.confirm(
         "Lecture room will be deleted and all participants will be dismissed, click OK to confirm"
       );
       if (response) {
         // end lecture
+        const classroomId = localStorage.getItem("classroomKey");
+        await deleteClassroom(
+          { classroomId },
+          () => {
+            window.location.href = `${window.location.protocol}//${window.location.host}/app/${user.userId}`;
+          },
+          (error) => alert(error)
+        );
       }
       return;
     }
+    window.location.href = `${window.location.protocol}//${window.location.host}/app/${user.userId}`;
     // leave room
   };
   const handleWaving = () => {
@@ -167,7 +182,7 @@ const Footer = (props) => {
         onClickOutside={() => setIsPopoverOpen(false)}
         content={
           <div className="bg-[#EDF2F7] rounded-lg ">
-            {options.map(({ label, action, icon, textColor, borderB }) => (
+            {options.map(({ label, action, textColor, borderB }) => (
               <p
                 key={label}
                 className={`p-3 border-[#BDBDBD] flex items-center justify-between cursor-pointer ${

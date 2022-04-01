@@ -38,12 +38,25 @@ function AdminPortal() {
     const decoded = verifyToken(token);
     await saveUserToken(
       { userId: decoded.userId, token },
-      () => {
+      async () => {
         const url = `${window.location.protocol}//${window.location.host}/sign-up/teacher?token=${token}`;
+        const mail = {
+          to_name: decoded.fullname,
+          to_email: decoded.email,
+          message: url,
+        };
+        await sendMail(mail, "request_approved")
+          .then(() => {
+            setIsButtonLoading(false);
+            setIsModalOpen(!isModalOpen);
+          })
+          .catch((err) =>
+            alert(
+              "Opps! Something went wrong, unable to send token url at the moment, please try again later."
+            )
+          );
         // send token to email
         console.log(url);
-        setIsButtonLoading(false);
-        setIsModalOpen(!isModalOpen);
       },
       (err) => alert(err)
     );
@@ -54,7 +67,7 @@ function AdminPortal() {
       history.push(`/app/${user.userId}`);
     }
     const makeRequest = async () => {
-      setIsLoading(true);
+      // setIsLoading(true);
       await getPendingUsers(
         (users) => {
           setPendingUsers(users);
@@ -127,6 +140,7 @@ function AdminPortal() {
       </ul>
       {isModalOpen && (
         <TokenSuccess
+          token={token}
           setIsModalOpen={setIsModalOpen}
           onSend={sendToken}
           isLoading={isButtonLoading}

@@ -8,7 +8,7 @@ import { ReactComponent as SuccessIcon } from "../../../assets/icons/success.svg
 
 import "../index.css";
 
-const TokenSuccess = ({ isLoading, onSend, setIsModalOpen }) => {
+const TokenSuccess = ({ isLoading, onSend, setIsModalOpen, token }) => {
   const clickAway = (e) => {
     e.stopPropagation();
     setIsModalOpen(false);
@@ -26,9 +26,10 @@ const TokenSuccess = ({ isLoading, onSend, setIsModalOpen }) => {
         <p className="text-base text-[#4F4F4F]">
           Token generated successfully. Click send to send
         </p>
-        <p className="text-lg font-bold text-[#2F80ED] my-4">
-          ssl8439LSKSlskdlsh489
-        </p>
+        <p className="text-lg font-bold text-[#2F80ED] my-4">{`${token.substring(
+          0,
+          15
+        )}...`}</p>
         <CustomButton
           onClick={onSend}
           isLoading={isLoading}

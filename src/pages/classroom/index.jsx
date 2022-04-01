@@ -98,13 +98,16 @@ function Classroom(props) {
               );
               const { userId, userName, preference } = participantInfo;
               // if teacher, end lecture and delete room else just remove student from participants
-              props.setUser({
-                [currentParticipantRef.key]: {
-                  userId,
-                  userName,
-                  ...preference,
+              props.setUser(
+                {
+                  [currentParticipantRef.key]: {
+                    userId,
+                    userName,
+                    ...preference,
+                  },
                 },
-              });
+                participantRef
+              );
               onDisconnect(currentParticipantRef).remove();
             }
           });

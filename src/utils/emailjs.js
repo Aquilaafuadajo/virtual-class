@@ -5,17 +5,16 @@ const templateIds = {
   login: "template_xjbzkrd",
   request_approved: "template_dafzsvy",
 };
-const sendMail = async ({ to, message }, id) => {
+const sendMail = async (data, id) => {
   const template_params = {
     from_name: "aquilaafuadajo@gmail.com",
-    to_name: to,
-    message,
+    ...data,
   };
 
   const response = await emailjs.send(
     process.env.REACT_APP_SERVICE_ID,
-    process.env.REACT_APP_TEMPLATE_ID,
-    templateIds[id]
+    templateIds[id],
+    template_params
   );
 
   return response;

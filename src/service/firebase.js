@@ -13,7 +13,14 @@ import {
   onValue,
   get,
 } from "firebase/database";
-import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  deleteObject,
+} from "firebase/storage";
+
+import { getFormatedDate } from "../utils/formatDate";
 
 // send mail
 import { generateVerificationCode } from "../utils";
@@ -73,13 +80,13 @@ export const login = async (data, onSuccess, onError) => {
             message: code,
           };
           onSuccess({ code });
-          // await sendMail(mail, 'login')
-          //   .then(() => onSuccess({ code }))
-          //   .catch((err) =>
-          //     onError(
-          //       "Opps! Something went wrong, unable to send verification code at the moment, please try again later."
-          //     )
-          //   );
+          await sendMail(mail, "login")
+            .then(() => onSuccess({ code }))
+            .catch((err) =>
+              onError(
+                "Opps! Something went wrong, unable to send verification code at the moment, please try again later."
+              )
+            );
         }
       } else {
         return onError("User with email does not exist");
@@ -92,15 +99,21 @@ export const teacherSignUp = async (data, onSuccess, onError) => {
   await get(query(usersRef, orderByChild("email"), equalTo(data.email)))
     .then(async (snapshot) => {
       if (snapshot.exists()) {
+        const user = Object.values(snapshot.val())[0];
         const code = generateVerificationCode();
+        const mail = {
+          to_name: user.fullname,
+          to_email: user.email,
+          message: code,
+        };
         onSuccess({ code });
-        // await sendMail(mail, "login")
-        //   .then(() => onSuccess({ code }))
-        //   .catch((err) =>
-        //     onError(
-        //       "Opps! Something went wrong, unable to send verification code at the moment, please try again later."
-        //     )
-        //   );
+        await sendMail(mail, "login")
+          .then(() => onSuccess({ code }))
+          .catch((err) =>
+            onError(
+              "Opps! Something went wrong, unable to send verification code at the moment, please try again later."
+            )
+          );
       } else {
         return onError("User with email does not exist");
       }
@@ -238,12 +251,15 @@ export const uploadLecture = async (data, onSuccess, onError) => {
   const { file, ...others } = data;
   const name = others.fileName.split(".");
   const uniqueName = `${name[0]}-${generateVerificationCode()}.${name[1]}`;
+
   await uploadBytes(storageRef(storage, `lectures/${uniqueName}`), data.file)
     .then(async () => {
       const newLectureId = push(lecturesRef).key;
       const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/react-chat-app-618b9.appspot.com/o/lectures%2F${uniqueName}?alt=media&token=dfea7ae3-2c0c-454c-ae73-c5fc5215efef`;
       await set(ref(db, `uploadedLectures/${newLectureId}`), {
         ...others,
+        fileRef: uniqueName,
+        createdAt: getFormatedDate(),
         downloadUrl,
       })
         .then((snapshot) => onSuccess(snapshot))
@@ -260,4 +276,74 @@ export const setWaving = (userName, id) => {
     .catch((err) => console.log({ err }));
 };
 
+export const getLectures = async (data, onSuccess, onError) => {
+  if (!data.userId) {
+    await get(query(lecturesRef))
+      .then(async (snapshot) => {
+        if (snapshot.exists()) {
+          const lectures = Object.entries(snapshot.val()).map((lecture) => {
+            return {
+              lectureId: lecture[0],
+              ...lecture[1],
+            };
+          });
+          onSuccess(lectures);
+        } else {
+          return onSuccess([]);
+        }
+      })
+      .catch((error) => onError(error.message));
+    return;
+  }
+  await get(query(lecturesRef, orderByChild("ownerId"), equalTo(data.userId)))
+    .then(async (snapshot) => {
+      if (snapshot.exists()) {
+        const lectures = Object.entries(snapshot.val()).map((lecture) => {
+          return {
+            lectureId: lecture[0],
+            ...lecture[1],
+          };
+        });
+        onSuccess(lectures);
+      } else {
+        return onSuccess([]);
+      }
+    })
+    .catch((error) => onError(error.message));
+};
+
+export const getOngoingLectures = async (data, onSuccess, onError) => {
+  await get(query(classroomRef))
+    .then(async (snapshot) => {
+      if (snapshot.exists()) {
+        const classrooms = Object.entries(snapshot.val()).map((lecture) => {
+          return {
+            classroomId: lecture[0],
+            ...lecture[1],
+          };
+        });
+        onSuccess(classrooms);
+      } else {
+        return onSuccess([]);
+      }
+    })
+    .catch((error) => onError(error.message));
+  return;
+};
+
+export const deleteLecture = async (data, onSuccess, onError) => {
+  await set(ref(db, `uploadedLectures/${data.lectureId}`), null)
+    .then(() => {
+      deleteObject(storageRef(storage, `lectures/${data.fileRef}`))
+        .then(onSuccess)
+        .catch((error) => onError(error.message));
+    })
+    .catch((error) => onError(error.message));
+};
+
+export const deleteClassroom = async (data, onSuccess, onError) => {
+  await set(ref(db, `classrooms/${data.classroomId}`), null)
+    .then(onSuccess)
+    .catch((error) => onError(error.message));
+};
 // end class function

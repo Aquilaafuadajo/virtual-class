@@ -21,7 +21,6 @@ let defaultUserState = {
   participants: {},
   currentUser: null,
   messages: {},
-  remoteStream: null,
 };
 
 export const userReducer = (state = defaultUserState, action) => {

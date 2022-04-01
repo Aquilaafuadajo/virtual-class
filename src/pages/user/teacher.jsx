@@ -1,4 +1,8 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import { Popover } from "react-tiny-popover";
+
+// firebase
+import { getLectures, deleteLecture } from "../../service/firebase";
 
 // components
 import Filter from "./components/filter";
@@ -10,6 +14,7 @@ import AppContext from "../../contexts/AppContext";
 // icons
 import { ReactComponent as AddIcon } from "../../assets/icons/plus.svg";
 import { ReactComponent as MoreVertIcon } from "../../assets/icons/more_vertical.svg";
+import { ReactComponent as EmptyState } from "../../assets/icons/empty_state.svg";
 
 // utils
 import { levelOptions, departmentOptions } from "../../utils/constants";
@@ -22,6 +27,93 @@ function TeacherPortal() {
   const [level, setLevel] = useState("");
   const [department, setDepartment] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lectures, setLectures] = useState([]);
+  const [loading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const makeRequest = async () => {
+      setIsLoading(true);
+      console.log(user.userId);
+      await getLectures(
+        { userId: user.userId },
+        (lcts) => {
+          setLectures(lcts);
+          setIsLoading(false);
+        },
+        (error) => {
+          alert(error);
+        }
+      );
+    };
+
+    makeRequest();
+  }, []);
+
+  const PopoverButton = ({ options }) => {
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+    return (
+      <Popover
+        isOpen={isPopoverOpen}
+        // positions={["top", "bottom", "left", "right"]}
+        position="left"
+        onClickOutside={() => setIsPopoverOpen(false)}
+        content={
+          <div className="bg-[#EDF2F7] rounded-lg ">
+            {options.map(({ label, action, textColor, borderB, linkTo }) =>
+              linkTo ? (
+                <a
+                  key={label}
+                  className={`p-3 border-[#BDBDBD] flex items-center justify-between cursor-pointer ${
+                    borderB && "border-b"
+                  } ${textColor || "text-[#2F80ED]"}`}
+                  href={linkTo}
+                >
+                  {label}
+                </a>
+              ) : (
+                <p
+                  key={label}
+                  className={`p-3 border-[#BDBDBD] flex items-center justify-between cursor-pointer ${
+                    borderB && "border-b"
+                  } ${textColor || "text-[#2F80ED]"}`}
+                  onClick={() => {
+                    action();
+                    setIsPopoverOpen(!isPopoverOpen);
+                  }}
+                >
+                  {label}
+                </p>
+              )
+            )}
+          </div>
+        }
+      >
+        <button
+          onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+          className="p-4"
+        >
+          <MoreVertIcon />
+        </button>
+      </Popover>
+    );
+  };
+
+  const onDelete = async (data) => {
+    if (window.confirm("Are you sure you want to delete this lecture?")) {
+      await deleteLecture(
+        { ...data },
+        () => {
+          const lects = lectures.filter(
+            (lect) => lect.lectureId !== data.lectureId
+          );
+          setLectures(lects);
+          alert("lecture deleted successfully");
+        },
+        (error) => alert(error)
+      );
+    }
+  };
 
   const onChangeLevel = (e) => {
     console.log(e.target.value);
@@ -107,40 +199,50 @@ function TeacherPortal() {
         </div>
       </div>
       <ul className="flex flex-col mt-5 bg-[#FAFAFA]">
-        <li className="flex justify-between items-center border-b border-[#c9c9c9ce] py-3">
-          <div className="flex flex-col">
-            <p className="text-lg font-bold text-[#2F80ED]">
-              Operating Systems Research
-            </p>
-            <p className="flex items-center font-bold text-sm lg:text-lg text-[#ADADAD]">
-              <span>ECE</span>
-              <span className="mx-3">•</span>
-              <span>300L</span>
-              <span className="mx-3">•</span>
-              <span>11-01-2022</span>
-            </p>
+        {!loading && lectures.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-4">
+            <EmptyState />
+            <p className="mt-3 text-sm">No Uploaded lectures</p>
           </div>
-          <button className="p-4">
-            <MoreVertIcon />
-          </button>
-        </li>
-        <li className="flex justify-between items-center border-b border-[#c9c9c9ce] py-3">
-          <div className="flex flex-col">
-            <p className="text-lg font-bold text-[#2F80ED]">
-              Operating Systems Research
-            </p>
-            <p className="flex items-center font-bold text-sm lg:text-lg text-[#ADADAD]">
-              <span>ECE</span>
-              <span className="mx-3">•</span>
-              <span>300L</span>
-              <span className="mx-3">•</span>
-              <span>11-01-2022</span>
-            </p>
-          </div>
-          <button className="p-4">
-            <MoreVertIcon />
-          </button>
-        </li>
+        ) : (
+          lectures.map((lecture) => (
+            <li
+              key={lecture.lectureId}
+              className="flex justify-between items-center border-b border-[#c9c9c9ce] py-3"
+            >
+              <div className="flex flex-col">
+                <p className="text-lg font-bold text-[#2F80ED]">
+                  {lecture.title}
+                </p>
+                <p className="flex items-center font-bold text-sm lg:text-lg text-[#ADADAD]">
+                  <span>{lecture.department}</span>
+                  <span className="mx-3">•</span>
+                  <span>{lecture.level}</span>
+                  <span className="mx-3">•</span>
+                  <span>{lecture.createdAt}</span>
+                </p>
+              </div>
+              <PopoverButton
+                options={[
+                  {
+                    label: "Watch",
+                    linkTo: lecture.downloadUrl,
+                    borderB: true,
+                  },
+                  {
+                    label: "Delete",
+                    action: () =>
+                      onDelete({
+                        fileRef: lecture.fileRef,
+                        lectureId: lecture.lectureId,
+                      }),
+                    textColor: "delete",
+                  },
+                ]}
+              />
+            </li>
+          ))
+        )}
       </ul>
       {isModalOpen && (
         <CreateLectureModal toggleIsOpen={() => setIsModalOpen(!isModalOpen)} />

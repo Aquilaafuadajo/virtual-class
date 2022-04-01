@@ -17,6 +17,7 @@ import { ReactComponent as ExternalLink } from "../../../assets/icons/external_l
 // utils
 import { levelOptions, departmentOptions } from "../../../utils/constants";
 import { inputRuleNoPattern } from "../../../utils/validation";
+import formatAMPM, { getFormatedDate } from "../../../utils/formatDate";
 
 // firebase
 import { createClassroom } from "../../../service/firebase";
@@ -32,6 +33,8 @@ function CreateLectureModal({ toggleIsOpen }) {
       {
         ownerId: user.userId,
         teacherName: user.fullname,
+        date: getFormatedDate(),
+        time: formatAMPM(new Date()),
         ...data,
       },
       (classroomId) => {
