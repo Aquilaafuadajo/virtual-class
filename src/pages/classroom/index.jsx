@@ -75,7 +75,10 @@ function Classroom(props) {
       await getClassroomInfo(
         { classroomKey: props.match.params.id },
         async (data) => {
-          props.setClassroomInfo(data);
+          props.setClassroomInfo({
+            ...data,
+            classRoomKey: props.match.params.id,
+          });
           const stream = await getUserStream();
           stream.getVideoTracks()[0].enabled = false;
           stream.getAudioTracks()[0].enabled = isTeacher;

@@ -46,7 +46,8 @@ export const userReducer = (state = defaultUserState, action) => {
       payload.newUser = addConnection(
         payload.newUser,
         state.currentUser,
-        state.mainStream
+        state.mainStream,
+        state.classroomInfo.classRoomKey
       );
     }
 
@@ -67,7 +68,7 @@ export const userReducer = (state = defaultUserState, action) => {
       ...state.participants,
     };
     const userId = Object.keys(payload.currentUser)[0];
-    initializeListensers(userId);
+    initializeListensers(userId, state.classroomInfo.classRoomKey);
     state = {
       ...state,
       currentUser: {
@@ -90,8 +91,11 @@ export const userReducer = (state = defaultUserState, action) => {
   } else if (action.type === UPDATE_USER) {
     let payload = action.payload;
     const userId = Object.keys(state.currentUser)[0];
-    updatePreference(userId, payload.currentUser);
-    // console.log(payload.currentUser);
+    updatePreference(
+      userId,
+      payload.currentUser,
+      state.classroomInfo.classRoomKey
+    );
     state.currentUser[userId] = {
       ...state.currentUser[userId],
       ...payload.currentUser,
@@ -117,7 +121,11 @@ export const userReducer = (state = defaultUserState, action) => {
     };
     const currentUserId = Object.keys(state.currentUser)[0];
     const currentUser = { [newUserId]: participants[newUserId] };
-    updatePreference(Object.keys(currentUser)[0], payload.newUser[newUserId]);
+    updatePreference(
+      Object.keys(currentUser)[0],
+      payload.newUser[newUserId],
+      state.classroomInfo.classRoomKey
+    );
     console.log(participants);
     if (currentUserId === newUserId) {
       state = {

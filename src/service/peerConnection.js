@@ -19,10 +19,10 @@ const servers = {
   iceCandidatePoolSize: 10,
 };
 
-const classRoomKey = localStorage.getItem("classroomKey");
-const participantRef = ref(db, `classrooms/${classRoomKey}/participants`);
+// const classRoomKey = localStorage.getItem("classroomKey");
+const classroomRef = ref(db, `classrooms`);
 
-export const addConnection = (newUser, currentUser, stream) => {
+export const addConnection = (newUser, currentUser, stream, classRoomKey) => {
   const peerConnection = new RTCPeerConnection(servers);
   stream.getTracks().forEach((track) => {
     peerConnection.addTrack(track, stream);
@@ -36,20 +36,31 @@ export const addConnection = (newUser, currentUser, stream) => {
 
   newUser[newUserId].peerConnection = peerConnection;
   if (offerIds[0] !== currentUserId)
-    createOffer(peerConnection, offerIds[0], offerIds[1]);
+    createOffer(peerConnection, offerIds[0], offerIds[1], classRoomKey);
   return newUser;
 };
 
-export const updatePreference = (userId, preference) => {
-  const currentParticipantRef = child(participantRef, `${userId}/preference`);
+export const updatePreference = (userId, preference, classRoomKey) => {
+  const currentParticipantRef = child(
+    classroomRef,
+    `/${classRoomKey}/participants/${userId}/preference`
+  );
 
   setTimeout(() => {
     update(currentParticipantRef, preference);
   });
 };
 
-export const createOffer = async (peerConnection, receiverId, createdID) => {
-  const currentParticipantRef = child(participantRef, `${receiverId}`);
+export const createOffer = async (
+  peerConnection,
+  receiverId,
+  createdID,
+  classRoomKey
+) => {
+  const currentParticipantRef = child(
+    classroomRef,
+    `/${classRoomKey}/participants/${receiverId}`
+  );
 
   peerConnection.onicecandidate = (event) => {
     event.candidate &&
@@ -73,8 +84,11 @@ export const createOffer = async (peerConnection, receiverId, createdID) => {
   await set(child(currentParticipantRef, `offers/${offerKey}`), { offer });
 };
 
-export const initializeListensers = async (userId) => {
-  const currentUserRef = child(participantRef, `${userId}`);
+export const initializeListensers = async (userId, classRoomKey) => {
+  const currentUserRef = child(
+    classroomRef,
+    `/${classRoomKey}/participants/${userId}`
+  );
 
   onChildAdded(child(currentUserRef, "offers"), async (snapshot) => {
     const data = snapshot.val();
@@ -82,7 +96,7 @@ export const initializeListensers = async (userId) => {
       const pc =
         store.getState().participants[data.offer.userId].peerConnection;
       await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-      await createAnswer(data.offer.userId, userId);
+      await createAnswer(data.offer.userId, userId, classRoomKey);
     }
   });
 
@@ -113,9 +127,12 @@ export const initializeListensers = async (userId) => {
   });
 };
 
-const createAnswer = async (otherUserId, userId) => {
+const createAnswer = async (otherUserId, userId, classRoomKey) => {
   const pc = store.getState().participants[otherUserId].peerConnection;
-  const participantRef1 = child(participantRef, `${otherUserId}`);
+  const participantRef1 = child(
+    classroomRef,
+    `/${classRoomKey}/participants/${otherUserId}`
+  );
   pc.onicecandidate = (event) => {
     event.candidate &&
       push(child(participantRef1, "answerCandidates"), {
