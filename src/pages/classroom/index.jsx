@@ -46,6 +46,7 @@ import "./index.css";
 function Classroom(props) {
   const history = useHistory();
   const { user } = useContext(AppContext);
+  const [clock, setClock] = useState({ h: "00", m: "00", s: "00" });
   useEffect(() => {
     if (!user) {
       history.push("/login");
@@ -122,6 +123,25 @@ function Classroom(props) {
       );
     }
     initializeApp();
+    function startTime() {
+      const today = new Date();
+      let h = today.getHours();
+      let m = today.getMinutes();
+      let s = today.getSeconds();
+      m = checkTime(m);
+      s = checkTime(s);
+      setClock({ h, m, s });
+      setTimeout(startTime, 1000);
+    }
+
+    startTime();
+
+    function checkTime(i) {
+      if (i < 10) {
+        i = "0" + i;
+      }
+      return i;
+    }
   }, []);
 
   const isLocalParticipantSet = !!props.user;
@@ -352,8 +372,16 @@ function Classroom(props) {
         )}
         <div className="flex justify-between px-3">
           <div className="flex flex-col">
-            <p className="text-white text-lg font-bold">You</p>
-            <p className="text-white text-lg font-bold mb-2">11: 59 PM</p>
+            <p className="text-white text-lg font-bold">
+              {`Title - ${props.classroomInfo?.title}`}
+            </p>
+            <p className="text-white text-lg font-bold">
+              {`lecturer - ${props.classroomInfo?.teacherName}`}
+            </p>
+            <p className="text-white text-lg font-bold">
+              {`${props.classroomInfo?.department}`}
+            </p>
+            <p className="text-white text-lg font-bold mb-2">{`${clock.h}: ${clock.m}: ${clock.s}`}</p>
           </div>
           <div className="flex">
             <button onClick={() => presentParticipantsUI()} className="mx-4">
