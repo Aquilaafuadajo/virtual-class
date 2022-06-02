@@ -33,6 +33,7 @@ import { db, connectedRef, getClassroomInfo } from "../../service/firebase";
 import Drawer from "./components/Drawer";
 import Footer from "./components/Footer";
 import MainScreen from "./components/MainScreen";
+import Clock from "./components/Clock";
 
 // context
 import AppContext from "../../contexts/AppContext";
@@ -46,7 +47,6 @@ import "./index.css";
 function Classroom(props) {
   const history = useHistory();
   const { user } = useContext(AppContext);
-  const [clock, setClock] = useState({ h: "00", m: "00", s: "00" });
   useEffect(() => {
     if (!user) {
       history.push("/login");
@@ -123,25 +123,6 @@ function Classroom(props) {
       );
     }
     initializeApp();
-    function startTime() {
-      const today = new Date();
-      let h = today.getHours();
-      let m = today.getMinutes();
-      let s = today.getSeconds();
-      m = checkTime(m);
-      s = checkTime(s);
-      setClock({ h, m, s });
-      setTimeout(startTime, 1000);
-    }
-
-    startTime();
-
-    function checkTime(i) {
-      if (i < 10) {
-        i = "0" + i;
-      }
-      return i;
-    }
   }, []);
 
   const isLocalParticipantSet = !!props.user;
@@ -362,7 +343,7 @@ function Classroom(props) {
             : !screenPresenter
         }
       />
-      <div className="absolute bottom-0 right-0 left-0 flex flex-col">
+      <div className="absolute bottom-0 right-0 left-0 flex flex-col h-full justify-end">
         {drawerOpen && (
           <Drawer
             drawerContent={drawerContent}
@@ -381,7 +362,7 @@ function Classroom(props) {
             <p className="text-white text-lg font-bold">
               {`${props.classroomInfo?.department}`}
             </p>
-            <p className="text-white text-lg font-bold mb-2">{`${clock.h}: ${clock.m}: ${clock.s}`}</p>
+            <Clock />
           </div>
           <div className="flex">
             <button onClick={() => presentParticipantsUI()} className="mx-4">

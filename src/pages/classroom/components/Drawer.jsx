@@ -37,7 +37,7 @@ const Drawer = ({
     };
     console.log(user);
     return (
-      <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 p-8 relative">
+      <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 mt-5 p-8 relative">
         <div className="flex justify-between items-center h-max w-full mb-5">
           <h3 className="font-semibold text-xl lg:text-2xl text[#282828]">
             People
@@ -98,7 +98,7 @@ const Drawer = ({
       // }
     };
     return (
-      <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 p-8 relative">
+      <div className="flex flex-col rounded-2xl h-[80vh] w-[90vw] lg:w-[35vw] bg-white ml-auto mr-5 mt-5 p-8 relative">
         <div className="flex justify-between items-center h-max w-full mb-5">
           <h3 className="font-semibold text-xl lg:text-2xl text[#282828]">
             In-call Messages

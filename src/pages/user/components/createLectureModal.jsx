@@ -101,7 +101,7 @@ function CreateLectureModal({ toggleIsOpen }) {
               className="flex my-5"
             >
               <p className="font-semibold text-sm text-[#2F80ED]">
-                {`https://localhost:3000/app/classroom/${lectureRoomId}`}
+                Enter lecture room
               </p>
               <ExternalLink />
             </Link>
