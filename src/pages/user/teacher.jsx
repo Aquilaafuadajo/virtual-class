@@ -133,7 +133,7 @@ function TeacherPortal() {
     <div className="flex flex-col">
       <div className="w-full flex flex-col">
         <h3 className="font-bold text-[#282828] text-xl lg:text-3xl my-4">
-          Bio Data
+          Personal Information
         </h3>
         <div className="flex flex-col w-full">
           <div className="flex justify-start">
