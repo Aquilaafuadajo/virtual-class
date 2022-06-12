@@ -357,10 +357,10 @@ function Classroom(props) {
               {`Title - ${props.classroomInfo?.title}`}
             </p>
             <p className="text-white text-lg font-bold">
-              {`lecturer - ${props.classroomInfo?.teacherName}`}
+              {`Lecturer - ${props.classroomInfo?.teacherName}`}
             </p>
             <p className="text-white text-lg font-bold">
-              {`${props.classroomInfo?.department}`}
+              {`Department - ${props.classroomInfo?.department}`}
             </p>
             <Clock />
           </div>
