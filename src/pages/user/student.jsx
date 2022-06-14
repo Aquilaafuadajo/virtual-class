@@ -154,7 +154,7 @@ function StudentPortal(props) {
           Uploaded Lectures
         </h3>
       </div>
-      <div className="flex justify-between mt-3">
+      {/* <div className="flex justify-between mt-3">
         <div className="flex items-center">
           <p className="mr-2">Filter:</p>
           <Filter
@@ -173,7 +173,7 @@ function StudentPortal(props) {
             name="level"
           />
         </div>
-      </div>
+      </div> */}
       {!loading && lectures.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-4">
           <EmptyState />

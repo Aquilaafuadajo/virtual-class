@@ -52,9 +52,18 @@ function StudentSignUp() {
 
   const departmentOptions = [
     { value: "", label: "Select Department" },
-    { value: "CPE", label: "CPE" },
-    { value: "ECE", label: "ECE" },
-    { value: "MECH", label: "MECH" },
+    { value: "CHEMICAL ENGR", label: "CHEMICAL ENGR" },
+    {
+      value: "ELECTRONIC & COMPUTER ENGR",
+      label: "ELECTRONIC & COMPUTER ENGR",
+    },
+    { value: "MECHANINCAL ENGR", label: "MECHANINCAL ENGR" },
+    { value: "SYSTEMS & INDUSTRIAL ENGR", label: "SYSTEMS & INDUSTRIAL ENGR" },
+    { value: "CIVIL ENGR", label: "CIVIL ENGR" },
+    {
+      value: "AERONAUTICS & ASTRONAUTICS ENGR",
+      label: "AERONAUTICS & ASTRONAUTICS ENGR",
+    },
   ];
 
   const levelOptions = [

@@ -1,8 +1,13 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Popover } from "react-tiny-popover";
+import { Link } from "react-router-dom";
 
 // firebase
-import { getLectures, deleteLecture } from "../../service/firebase";
+import {
+  getLectures,
+  deleteLecture,
+  getOngoingLectures,
+} from "../../service/firebase";
 
 // components
 import Filter from "./components/filter";
@@ -28,6 +33,7 @@ function TeacherPortal() {
   const [department, setDepartment] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lectures, setLectures] = useState([]);
+  const [onGoingLectures, setOngoingLectures] = useState([]);
   const [loading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -38,6 +44,17 @@ function TeacherPortal() {
         { userId: user.userId },
         (lcts) => {
           setLectures(lcts);
+          setIsLoading(false);
+        },
+        (error) => {
+          alert(error);
+        }
+      );
+      await getOngoingLectures(
+        {},
+        (lcts) => {
+          console.log({ lcts });
+          setOngoingLectures(lcts);
           setIsLoading(false);
         },
         (error) => {
@@ -164,7 +181,7 @@ function TeacherPortal() {
       </div>
       <div className="flex justify-between items-center mt-12">
         <h3 className="font-bold text-[#282828] text-lg lg:text-3xl my-4">
-          Uploaded Lectures
+          Ongoing Lectures
         </h3>
         <button
           onClick={() => setIsModalOpen(!isModalOpen)}
@@ -178,7 +195,48 @@ function TeacherPortal() {
           </p>
         </button>
       </div>
-      <div className="flex justify-between mt-3">
+      <ul className="flex flex-col mt-5 bg-[#FAFAFA]">
+        {!loading && onGoingLectures.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-4">
+            <EmptyState />
+            <p className="mt-3 text-sm">No Ongoing lectures</p>
+          </div>
+        ) : (
+          onGoingLectures.map((lecture) => (
+            <li
+              key={lecture.classroomId}
+              className="flex justify-between items-center border-b border-[#c9c9c9ce] py-3"
+            >
+              <div className="flex flex-col">
+                <p className="text-lg font-bold text-[#2F80ED]">
+                  {lecture.metadata?.title}
+                </p>
+                <p className="flex items-center font-bold text-sm lg:text-lg text-[#ADADAD]">
+                  <span>{lecture.metadata?.department}</span>
+                  <span className="mx-3">•</span>
+                  <span>{lecture.metadata?.level}</span>
+                  <span className="mx-3">•</span>
+                  <span>{lecture.metadata?.date}</span>
+                  <span className="mx-3">•</span>
+                  <span>{lecture.metadata?.time}</span>
+                </p>
+              </div>
+              <Link
+                to={`/app/classroom/${lecture.classroomId}`}
+                className="px-8 py-1 font-bold rounded-2xl text-[#2F80ED] bg-[#2f81ed51]"
+              >
+                Join
+              </Link>
+            </li>
+          ))
+        )}
+      </ul>
+      <div className="flex justify-between items-center mt-12">
+        <h3 className="font-bold text-[#282828] text-lg lg:text-3xl my-4">
+          Uploaded Lectures
+        </h3>
+      </div>
+      {/* <div className="flex justify-between mt-3">
         <div className="flex items-center">
           <p className="mr-2">Filter:</p>
           <Filter
@@ -197,7 +255,7 @@ function TeacherPortal() {
             name="level"
           />
         </div>
-      </div>
+      </div> */}
       <ul className="flex flex-col mt-5 bg-[#FAFAFA]">
         {!loading && lectures.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-4">
