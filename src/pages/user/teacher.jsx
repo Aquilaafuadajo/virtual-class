@@ -174,7 +174,7 @@ function TeacherPortal() {
               Department:
             </p>
             <p className="text-sm lg:text-lg text-[#333333] text-left">
-              {departmentFull[user?.department]}
+              {user?.department}
             </p>
           </div>
         </div>
