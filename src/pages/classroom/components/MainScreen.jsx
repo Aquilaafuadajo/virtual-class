@@ -7,6 +7,7 @@ const MainScreen = ({
   currentUser,
   participants,
   classroomInfo,
+  sharing,
 }) => {
   const participantKey = Object.keys(participants);
 
@@ -46,7 +47,9 @@ const MainScreen = ({
     <div className="flex justify-center items-center w-[180px] h-[180px] bg-green-500 rounded-full mb-[100px]">
       <video
         ref={videoRef}
-        className={`video ${!showAvatar ? "" : "hide-video"}`}
+        className={`video ${!showAvatar ? "" : "hide-video"} ${
+          sharing && "no-scale"
+        }`}
         autoPlay
         playsInline
       ></video>

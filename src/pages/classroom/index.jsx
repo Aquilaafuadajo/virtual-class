@@ -342,6 +342,7 @@ function Classroom(props) {
               currentUser?.userName
             : !screenPresenter
         }
+        sharing={screenPresenter}
       />
       <div className="absolute bottom-0 right-0 left-0 flex flex-col h-full justify-end">
         {drawerOpen && (
